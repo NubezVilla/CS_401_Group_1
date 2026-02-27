@@ -12,7 +12,7 @@
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
 |      02/23/2026     |         0.2        |                Finish section 1; content pending revision                          |      Aneesh Pradhan          |
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
-|                     |                    |                                                                                    |                              |
+|      02/26/20206    |         0.3        |                Finish section 2; content pending revision                          |      Jason Wilaysono         |
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
 |                     |                    |                                                                                    |                              |
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
@@ -81,18 +81,33 @@ Table of Contents
 			Sequence Diagrams – Section 8
         1.4. Overview
 			Group 1's corporate communication application is designed to provide rapid wireless communication for all employees of a very large company. Messages sent will be immutable and records of every message sent 
-			will be logged and accessible to interal IT users. The application will be interactable through a GUI and connection will be serviced over TCP/IP. 
+			will be logged and accessible to internal IT users. The application will be interactable through a GUI, and connections will be serviced over TCP/IP. 
 2. Overall Description
         2.1. Product Perspective
+			 
         2.2. Product Architecture
-			[The system will be organized into ___ major modules: the ___ module, the ___ module, and the _____ module.]
-			[Note: System architecture should follow standard OO design practices.]
+			The system will be organized into 3 major modules: the Server module, the Client module, and the Gui module
         2.3. Product Functionality/Features
-			The high-level features of the system are as follows (see section 3 of this document for more detailed requirements that address these features):
+			The high-level features of the system are as follows:
+			Sending & receiving text through TCP/IP
+			Text logs in the form of txt files
+			User and admin login
+			GUI for client side
+			Separate programs for client and server
+			Group and direct messaging
         2.4. Constraints
+			All messages are immutable
+			No security features
+			Cannot send data outside of plain text
+			All functionality must be provided by the app itself
+			No database usage
 			[List appropriate constraints.]
 			[Constraint example: Since users may use any web browser to access the system, no browser-specific code is to be used in the system. ]
         2.5. Assumptions and Dependencies
+			It is assumed that each client would not send over XXXXXX messages a second
+			It is assumed that each client is connected to the internet to send and read messages
+			It is assumed that users do not connect to a VPN during an app session
+			It is assumed that only admin users can create regular users and {{{{{{{ ask smith here }}}}}}}
 			[List appropriate assumptions]
 			[Assumption Example: It is assumed that the maximum number of users at a given time is 15,000.]
 3. Specific Requirements
@@ -102,15 +117,15 @@ Table of Contents
 				Example:
 				3.1.1.1 SR9 Users should be allowed to log in using their issued id and pin, both of which are alphanumeric strings between 6 and 20 characters in length. 
 				3.1.1.2 SR23 The system should provide HTML-based help pages on each screen that describe the purpose of each function within the system. 
-            3.1.2. _____ Module Requirements:
+            3.1.2. Client Module Requirements:
 				Provide module specific requirements as appropriate. SR10 
 				Example:
 				3.1.2.1 SR9 Users should be allowed to log in using their issued id and pin, both of which are alphanumeric strings between 6 and 20 characters in length. 
-            3.1.3. _____ Module Requirements:
+            3.1.3. Server Module Requirements:
 				Provide module specific requirements as appropriate. SR10 	
 				Example:
 				3.1.2.1 SR9 Users should be allowed to log in using their issued id and pin, both of which are alphanumeric strings between 6 and 20 characters in length. 
-            3.1.4. _____ Module Requirements:
+            3.1.4. GUI Module Requirements:
 				Provide module specific requirements as appropriate. SR10 
 				Example:
 				3.1.2.1 SR9 Users should be allowed to log in using their issued id and pin, both of which are alphanumeric strings between 6 and 20 characters in length. 
@@ -136,6 +151,7 @@ Table of Contents
         4.3. Performance Requirements
 			Example:
 			4.3.1 SR27 System must render all UI pages in no more than 9 seconds for dynamic pages. Static pages (HTML-only) must be rendered in less than 3 seconds. 
+
 
 
 
