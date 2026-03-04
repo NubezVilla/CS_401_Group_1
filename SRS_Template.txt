@@ -178,7 +178,8 @@ Table of Contents
 			4.2.2. Use of any external libraries must be approved by the stakeholder 
 			4.2.3 The system must be complete by 05/07/2026
         4.3. Performance Requirements
-			4.3.1 The system should be scalable to be able to handle an arbitrary number of connected clients 
+			4.3.1 The system should be scalable to be able to handle an arbitrary number of connected clients simultaneously
+
 
 
 
