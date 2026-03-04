@@ -143,17 +143,17 @@ Table of Contents
             3.1.3. Server Module Requirements:
 				3.1.3.1. The server should listen for message classes to be stored in a conversation class while it is running
 				3.1.3.2. The server should store all data for users, conversations, and messages in plaintext files. 
-				3.1.3.3. The server should create regular backups of this data
+				3.1.3.3. The server should create regular backups of this data to minimize data loss
 				3.1.3.4. The server should be able to connect to and provide data to any number of connected clients at a time. 
 				3.1.3.5. The server should keep connections open until the client closes them.
-				3.1.3.6. The server should be able to send data whenever the client requests it.
+				3.1.3.6. The server should be able to send data whenever any client requests it.
 				3.1.3.7. The server should be able receive any data sent from the client, and send that data to other clients. 
 				3.1.3.8. The server must ensure that ordering of data is maintained in logging and transmission.
             3.1.4. GUI Module Requirements:
 				3.1.4.1. The GUI should open to the login screen, and not allow a user to do anything else until they login successfully
 				3.1.4.2. The GUI should allow users to view all conversations they are a part of, and all messages in those conversations. 
 				3.1.4.3. The GUI should display messages in chronological order based on timestamp.
-				3.1.4.4. The GUI should provide a search bar to find other users
+				3.1.4.4. The GUI should provide a search bar to find other users, and should match based on username, name, and/or ID.
 				3.1.4.5. The GUI must present input text from the user as the user is typing it.
 				3.1.4.6. The GUI should allow users to see information about other users 
 				3.1.4.7. The GUI should allow users to report messages and those reports should be sent to an IT User
@@ -179,6 +179,7 @@ Table of Contents
 			4.2.3 The system must be complete by 05/07/2026
         4.3. Performance Requirements
 			4.3.1 The system should be scalable to be able to handle an arbitrary number of connected clients simultaneously
+
 
 
 
