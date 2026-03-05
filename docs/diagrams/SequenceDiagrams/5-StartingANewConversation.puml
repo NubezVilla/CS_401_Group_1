@@ -1,0 +1,39 @@
+@startuml
+title Use Case 5: Starting a New Conversation
+
+actor User
+boundary GUI as "Client GUI"
+control Client as "Client App"
+control Server as "Server"
+collections ClientCache as "Client Cache\n(User directory + Conversation headers)"
+collections Store as "Server Persistent Storage\n(Message Data)"
+
+== Open user search ==
+User -> GUI: Navigate to "Search Users"
+GUI -> Client: Request user directory
+
+Client -> Server: GetAllUsers()
+Server --> Client: User list (userId, name, username, etc.)
+Client -> ClientCache: Store user list
+
+== Search / filter ==
+loop While user types
+  User -> GUI: Type in search bar (query)
+  GUI -> Client: FindMatchingUsers(query)
+  Client -> ClientCache: Filter user list by query
+  ClientCache --> Client: Matching users
+  Client --> GUI: Display matching users
+end
+
+== Create conversation ==
+User -> GUI: Select one or more users\nClick "Start Conversation"
+GUI -> Client: CreateConversation(participantUserIds)
+
+Client -> Server: CreateConversation(participants)
+Server -> Store: Create conversation file\n(conversationId, participants)
+Store --> Server: Created (conversationId)
+Server --> Client: CreateConversation OK\n(conversation object)
+
+Client -> ClientCache: Add conversation object
+Client --> GUI: Open new conversation view\n(conversation object)
+@enduml
