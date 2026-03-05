@@ -1,0 +1,25 @@
+@startuml
+left to right direction
+
+actor User
+actor "IT Admin" as Admin
+
+rectangle "Communication System" 
+
+User --> (Login)
+User --> (Logout)
+User --> (Open Conversation)
+User --> (Send Message)
+User --> (Start New Conversation)
+User --> (Search User)
+User --> (Create Group Chat)
+User --> (Join Group Chat)
+User --> (Leave Group Chat)
+
+Admin --> (Create Account)
+Admin --> (Change Login Info)
+Admin --> (Change Account Status)
+Admin --> (Check Message Logs)
+Admin --> (Search Message by ID)
+
+@enduml
