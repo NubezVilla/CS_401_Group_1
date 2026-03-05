@@ -73,9 +73,9 @@ Table of Contents
 				1.2.1.1. Client: The user-facing program for interacting with the system. Clients will connect to a singular server.
 				1.2.1.2. Server: The program designed to host the system. Multiple clients connect to this server.
 				1.2.1.3. Administrator: An elevated user with privileges that allow monitoring server chat logs, creating and deleting users.  
-				1.2.1.4. Message: A single string of text and it's associated metadata
-				1.2.1.5. Conversation: A series of messages between a set of users
-				1.2.1.6. Read Message: A message which the system assumes has been read by a user
+				1.2.1.4. Message: A single string of text and it's associated metadata.
+				1.2.1.5. Conversation: A series of messages between a set of users.
+				1.2.1.6. Read Message: A message which the system assumes has been read by a user.
         1.3. References
     			UML Use Case Diagrams: /UseCaseDiagram
     			Class Diagrams: /ClassDiagram
@@ -89,22 +89,21 @@ Table of Contents
         2.2. Product Architecture
 			The system will be organized into 3 major modules: the Server module, the Client module, and the GUI module
         2.3. Product Functionality/Features
-			2.3.1. The high-level features of the system are as follows:
-			2.3.2. Sending & receiving text through TCP/IP
-			2.3.3. Text logs in the form of txt files
-			2.3.4. User and admin login
-			2.3.5. GUI for client side
-			2.3.6. Separate programs for client and server
-			2.3.7. Group and direct messaging
+			The high-level features of the system are as follows:
+			2.3.1. The system will facilitate sending & receiving text through TCP/IP.
+			2.3.2. The system will faciliate messaging of individuals and of groups. 
+			2.3.3. Users can be logged in as either regular users or IT users, depending on the permissions of their account. 
+			2.3.4. Users will interface with the system through a client-side GUI. 
+			2.3.5. The system will use the client-server model, with seperate programs for the client and the server. 
+			2.3.6. All messages are logged in human-readable plainttext files. 
         2.4. Constraints
 			2.4.1 All messages must be immutable once sent.
-			2.4.2 No security features
-			2.4.3 Cannot send data outside of plain text
-			2.4.4 All functionality must be provided by the app itself
+			2.4.2 No encryption is to be used. 
+			2.4.3 No data is to be sent or recieved from outside the system, except from log files genereated by the system. 
 			2.4.5 The system can not use a database.
         2.5. Assumptions and Dependencies
-			2.5.1 It is assumed that each client is connected to the internet to send and read messages
-			2.5.2 It is assumed that users do not connect to a VPN during an app session
+			2.5.1 It is assumed that each client is connected to the internet to send and read messages.
+			2.5.2 It is assumed that users do not connect to a VPN during an app session.
 3. Specific Requirements
         3.1. Functional Requirements
             3.1.1. Common Requirements:
@@ -118,7 +117,7 @@ Table of Contents
 				3.1.1.8 Messages sent must be within UTF-8 format.
 				3.1.1.9 All conversations must be logged, including participants and other information about the conversation specific to group chats. 
 				3.1.1.10 All individual messages must be logged, including the conversation it is a part of, text, and timestamp.
-				3.1.1.11 The system should allow up to 20 messages per second per thread, and 
+				3.1.1.11 The system should limit the number of messages sent per client per second, but should not limit overall messages. 
             3.1.2. Client Module Requirements:
 				3.1.2.1. The Client application should not need to store any data locally except what is included in the application
 				3.1.2.2. The client application should be able to connect to the server application via TCP/IP. 
