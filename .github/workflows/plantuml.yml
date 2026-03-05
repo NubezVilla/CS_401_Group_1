@@ -3,7 +3,7 @@ run-name: ${{ github.actor }} updated the puml diagrams.
 on:
   push:
     paths:
-      - 'docs/diagrams/*/*.puml'
+      - 'Docs/diagrams/*/*.puml'
 
 jobs:
   build:
