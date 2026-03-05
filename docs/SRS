@@ -135,7 +135,7 @@ Table of Contents
 					3.1.2.7.1. View all conversations between all users and the messages therein
 					3.1.2.7.2. Create new user accounts
 					3.1.2.7.3. Edit login information for regular users
-				3.1.2.8. The system should keep track of whether a user is logged in or not
+				3.1.2.8. The system should keep track of whether a user is logged in or not, and not allow duplicate logins. 
 				3.1.2.9. The system should keep track of whether a message has been read or not. 
             3.1.3. Server Module Requirements:
 				3.1.3.1. The server should listen for message classes to be stored in a conversation class while it is running
