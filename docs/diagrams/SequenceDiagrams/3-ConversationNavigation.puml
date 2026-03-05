@@ -1,0 +1,44 @@
+@startuml
+title Use Case 3: Conversation Navigation
+
+actor User
+boundary GUI as "Client GUI"
+control Client as "Client App"
+control Server as "Server"
+
+== Open conversation ==
+User -> GUI: Click conversation (conversationId)
+GUI -> Client: Request conversation view\n(conversationId)
+
+alt Client has < 200 messages loaded for conversationId
+  Client -> Server: GetRecentMessages(conversationId, limit=200)
+  Server --> Client: Most recent up to 200 messages\n(or fewer if total < 200)
+  Client -> Client: Store messages in conversation cache
+else Client already has enough messages loaded
+  Client -> Client: Read messages from conversation cache
+end
+
+Client --> GUI: Provide messages for display
+GUI -> GUI: Render messages
+
+== Infinite scroll / paging older messages ==
+loop User scrolls up (load older messages as needed)
+  User -> GUI: Scroll up
+
+  alt Scroll position >= 80% through loaded messages (toward older)
+    GUI -> Client: Request older messages\n(conversationId)
+    alt Client needs more (not already cached)
+      Client -> Server: GetOlderMessages(conversationId,\n olderThan=oldestLoadedMessageId,\n limit=200)
+      Server --> Client: Up to 200 older messages\n(or fewer if none left)
+      Client -> Client: Append older messages to cache
+    else Client already has older messages cached
+      Client -> Client: Read older messages from cache
+    end
+
+    Client --> GUI: Provide additional messages
+    GUI -> GUI: Prepend older messages to view
+  else Not near threshold
+    GUI -> GUI: Continue displaying loaded messages
+  end
+end
+@enduml
