@@ -1,3 +1,4 @@
+@startuml
 skinparam classAttributeIconSize 0
 
 package "Model Layer" {
@@ -153,3 +154,4 @@ Report --> ITUser : sentTo
 
 GUIModule ..> Client : uses
 Client ..> Server : TCP/IP
+@enduml
