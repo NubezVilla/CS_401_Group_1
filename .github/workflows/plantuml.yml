@@ -5,7 +5,7 @@ run-name: ${{ github.actor }} updated the puml diagrams.
 on:
   push:
     paths:
-      - "docs/diagrams/**/*.puml"
+      - "docs/diagrams/*/*.puml"
   workflow_dispatch:
 
 jobs:
