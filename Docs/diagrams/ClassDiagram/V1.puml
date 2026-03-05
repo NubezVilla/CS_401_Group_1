@@ -1,0 +1,155 @@
+skinparam classAttributeIconSize 0
+
+package "Model Layer" {
+
+  abstract class User {
+    # userId : int
+    # username : String
+    # password : String
+    # realName : String
+    # position : String
+    # isLoggedIn : boolean
+    + login() : boolean
+    + logout() : void
+    + findUser(q: String) : User
+    + sendMessage(m: Message) : void
+    + getConversations() : List<Conversation>
+  }
+
+  class RegularUser {
+    - unreadCount : int
+    + createGroupChat() : GroupChat
+    + leaveGroupChat(g: GroupChat) : void
+    + reportMessage(m: Message) : Report
+  }
+
+  class ITUser {
+    - adminLevel : int
+    + createUserAccount() : User
+    + editUserInfo(u: User) : void
+    + viewAllConversations() : List<Conversation>
+    + viewReports() : List<Report>
+  }
+
+  abstract class Conversation {
+    - conversationId : int
+    - participants : List<User>
+    - messages : List<Message>
+    - createdAt : long
+    + addMessage(m: Message) : void
+    + getMessages(n: int) : List<Message>
+    + getParticipants() : List<User>
+  }
+
+  class DirectMessage {
+    - userA : User
+    - userB : User
+    + getOtherUser(u: User) : User
+  }
+
+  class GroupChat {
+    - groupName : String
+    - creator : User
+    + addParticipant(u: User) : void
+    + removeParticipant(u: User) : void
+  }
+
+  class Message <<immutable>> {
+    - messageId : int
+    - text : String
+    - timestamp : long
+    - sender : User
+    - conversationId : int
+    - isRead : boolean
+    - encoding : String = "UTF-8"
+    + getText() : String
+    + getTimestamp() : long
+    + markAsRead() : void
+    + serialize() : String
+  }
+
+  class Report {
+    - reportId : int
+    - reportedMessage : Message
+    - reportedBy : User
+    - sentTo : ITUser
+    - timestamp : long
+    + getDetails() : String
+  }
+}
+
+package "Server Layer" {
+  class Server {
+    - PORT : int = 54927
+    - connectedClients : List<Client>
+    - conversations : List<Conversation>
+    - users : List<User>
+    - isRunning : boolean
+    + start() : void
+    + stop() : void
+    + acceptClient() : void
+    + broadcastMessage(m: Message) : void
+    + getData(req: String) : String
+    + saveData() : void
+    + backupData() : void
+    + loadFromFiles() : void
+  }
+
+  class Log {
+    - filePath : String
+    - logType : String
+    + writeEntry(data: String) : void
+    + readAll() : String
+    + backup() : void
+  }
+}
+
+package "Client Layer" {
+  class Client {
+    - serverAddress : String
+    - serverPort : int
+    - loggedInUser : User
+    - isConnected : boolean
+    - connectionTimeout : int = 30
+    + connect() : boolean
+    + disconnect() : void
+    + sendMessage(m: Message) : void
+    + requestMessages(c: Conversation, n: int) : List<Message>
+    + authenticate(u: String, p: String) : boolean
+    + receiveData() : String
+  }
+}
+
+package "GUI Layer" {
+  class GUIModule {
+    - currentView : String
+    - client : Client
+    + showLoginScreen() : void
+    + showConversations() : void
+    + showMessages(c: Conversation) : void
+    + showSearchBar() : void
+    + notifyUnread(c: Conversation) : void
+    + markConvAsRead(c: Conversation) : void
+    + showUserInfo(u: User) : void
+    + displayInputText() : void
+  }
+}
+
+User <|-- RegularUser
+User <|-- ITUser
+Conversation <|-- DirectMessage
+Conversation <|-- GroupChat
+
+Server "1" *-- "1..*" Conversation : stores
+Conversation "1" *-- "1..*" Message : contains
+Server "1" *-- "1..*" Log : writes to
+
+Conversation "1" o-- "2..*" User : participants
+
+Message "1" --> "1" User : sender
+Client --> User : loggedInUser
+Report --> Message : references
+Report --> ITUser : sentTo
+
+GUIModule ..> Client : uses
+Client ..> Server : TCP/IP
