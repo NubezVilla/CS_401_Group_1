@@ -34,7 +34,7 @@ Client -> GUI: Show "Invalid login"\nAllow retry
 else Already Logged In Elsewhere
 Cache --> Server: User found, logged in flag is true
 Server --> Client: Login failed, already logged in 
-Client --> GUI: Display error, direct to logout elsewhere or contact IT
+Client --> GUI: Show "Already Logged In"\n Direct to logout elsewhere or contact IT
 else Valid credentials
 Cache --> Server: User found + role
 Server -> Cache: Get user profile data
