@@ -5,7 +5,7 @@ run-name: ${{ github.actor }} updated the puml diagrams.
 on:
   push:
     paths:
-      - "Docs/diagrams/*/*.puml"
+      - "Docs/diagrams/**/*.puml"
   workflow_dispatch:
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
 
       - name: Render .puml to .svg
         run: |
-          find docs/diagrams -name '*.puml' \
+          find Docs/diagrams -name '*.puml' \
             -exec java -jar plantuml.jar -tsvg -o . {} +
 
       - name: Commit rendered diagrams
@@ -42,7 +42,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add docs/diagrams/**/*.svg
+          git add Docs/diagrams/**/*.svg
 
           if git diff --cached --quiet; then
             echo "No diagram changes to commit."
