@@ -36,6 +36,21 @@ jobs:
           find docs/diagrams -type f -name "*.puml" \
             -exec java -jar plantuml.jar -tsvg {} \;
 
+      - name: Debug - list PlantUML inputs/outputs
+        run: |
+            echo "=== Repo root ==="
+            pwd
+            ls -la
+        
+            echo "=== PUML files found ==="
+            find docs/diagrams -type f -name "*.puml" -print || true
+        
+            echo "=== SVG files found ==="
+            find docs/diagrams -type f -name "*.svg" -print || true
+        
+            echo "=== Git status ==="
+            git status --porcelain
+
       - name: Commit generated SVGs
         run: |
           git config user.name "github-actions[bot]"
