@@ -1,3 +1,4 @@
+@startuml
 title Use Case 2: Logging Out
 
 actor User
@@ -10,3 +11,4 @@ GUI -> Client: Logout requested
 
 Client -> Client: Flush locally stored data\n(user data, conv data, tokens)
 Client -> GUI: Return to Login Screen
+@enduml
