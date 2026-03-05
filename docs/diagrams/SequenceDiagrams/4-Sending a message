@@ -1,0 +1,30 @@
+@startuml
+title Use Case 4: Sending a Message
+
+actor Sender as "User (Sender)"
+actor Recipient as "User (Recipient)"
+boundary GUI as "Client GUI"
+control Client as "Client App"
+control Server as "Server"
+collections Cache as "Server Cache\n(Users + Conversation headers)"
+collections Store as "Server Persistent Storage\n(Messages)"
+
+== Compose and send ==
+Sender -> GUI: Type message\nClick "Send"
+GUI -> Client: SendMessage(conversationId,\n messageText, attachments/meta)
+
+Client -> Server: PostMessage(conversationId,\n messagePayload, sessionToken)
+
+== Server processing ==
+Server -> Store: Append message to conversation
+Store --> Server: Stored (messageId, timestamp)
+
+Server -> Cache: Lookup conversation participants
+Cache --> Server: Participant list + online status
+
+== Delivery to online recipients ==
+loop For each logged-in recipient
+  Server --> Client: PushMessage(conversationId,\n messageId, messagePayload)
+  Client -> GUI: Display new message
+end
+@enduml
