@@ -1,0 +1,12 @@
+title Use Case 2: Logging Out
+
+actor User
+boundary GUI as "Client GUI"
+control Client as "Client App"
+
+== Logout ==
+User -> GUI: Click "Logout"
+GUI -> Client: Logout requested
+
+Client -> Client: Flush locally stored data\n(user data, conv data, tokens)
+Client -> GUI: Return to Login Screen
