@@ -10,7 +10,7 @@ collections Store as "Server Persistent Storage\n(User records)"
 
 == Open account creation ==
 ITUser -> GUI: Select "Create New User Account"
-GUI --> ITUser Display form fields\n(name, username, password, role)
+GUI --> ITUser: Display form fields\n(name, username, password, role)
 
 == Submit account data ==
 ITUser -> GUI: Enter account details\nClick "Create"
