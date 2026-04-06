@@ -10,23 +10,23 @@ collections Store as "Server Persistent Storage\n(User records)"
 
 == Open account creation ==
 ITUser -> GUI: Select "Create New User Account"
-GUI -> Client: Open account creation form
-Client --> GUI: Display form fields\n(name, username, password, role)
+GUI --> ITUser Display form fields\n(name, username, password, role)
 
 == Submit account data ==
 ITUser -> GUI: Enter account details\nClick "Create"
-GUI -> Client: SubmitNewUser(name, username,\n password, role)
+GUI -> Client: newUser(User)
 
-Client -> Server: CreateUser(name, username,\n password, role)
+Client -> Server: newUser(User)
 
 alt Create rejected (invalid / not permitted / username taken)
 Server --> Client: Create failed (reason)
 Client -> GUI: Show error message
 else Create accepted
 Server -> Store: Store new user record
-Store --> Server: User stored (newUserId)
+Store --> Server: User stored 
 Server -> Cache: Add user to cache
-Server --> Client: Create OK (newUserId)
+Server --> Client: Create OK 
+Client -> Client: Update user list 
 Client -> GUI: Show success confirmation\nand new user details
 end
 @enduml
