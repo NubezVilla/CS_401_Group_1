@@ -41,6 +41,7 @@ package "Model Layer" {
   class GroupChat {
     - groupName : String
     - creator : User
+    + GroupChat(base : Conversation)
     + addParticipant(u: User) : void
     + removeParticipant(u: User) : void
  + setName(n : String) 
