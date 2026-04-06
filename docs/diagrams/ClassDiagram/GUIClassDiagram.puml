@@ -1,0 +1,61 @@
+@startuml
+
+package GUI{
+class MainWindow <<extends JFrame>>{
+- contentPane : JPanel
+- Layout : CardLayout
+- navigator : ScreenNavigator
+- <u>modelHandle : ClientModel 
++ MainWindow(model : ClientModel)
+- initializeScreens() : void 
++ startup() : void
++ <u>getModel() : ClientModel
+
+}
+
+class ScreenNavigator{
+- container : JPanel
+- layout : CardLayout
++ ScreenNavigator(l: CardLayout, c : JPanel)
++ show(s : Screen) : void
+
+}
+
+class LoginScreen <<extends JPanel>>{
+- controller : ScreenNavigator
++ LoginScreen(c : ScreenNavigator)
+- initialize() : void
+}
+
+class UserScreen <<extends JPanel>>{
+- controller : ScreenNavigator
++ UserScreen(c : ScreenNavigator)
+- initialize() : void
+}
+
+class ITScreen <<extends JPanel>>{
+- controller : ScreenNavigator
++ ITScreen(c : ScreenNavigator)
+- initialize() : void
+}
+
+class AccountScreen <<extends JPanel>>{
+- controller : ScreenNavigator
++ AccountScreen(c : ScreenNavigator)
+- initialize() : void
+}
+enum Screens{
+LOGIN
+CLIENT
+IT
+}
+hide empty members
+}
+MainWindow "1"*--"1" ScreenNavigator
+ScreenNavigator "1"o--*"1" LoginScreen
+ScreenNavigator "1"o--*"1" UserScreen
+ScreenNavigator "1"o--*"1" ITScreen
+ScreenNavigator "1"o--*"1" AccountScreen
+ClientModel "Uses"<... GUI
+ScreenNavigator "Uses"<.l.Screens
+@enduml
