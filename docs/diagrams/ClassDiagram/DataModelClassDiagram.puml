@@ -1,0 +1,71 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Model Layer" {
+
+  abstract class User <<serializable>> {
+    - static count : Int
+    - userId : String
+    - logininfo : LoginInfo
+    - realName : String
+    - position : String
+    - itUser : Boolean
+    - conversationIDs : ArrayList<String> 
+    - unreadConversationIDs : Unordered, Unique<String>
+    + User()
+    + User(username : String, password : String)
+    + getters and setters for all values (various)
+  }
+
+  class LoginInfo <<serializable>>{
+    - username : String
+    - password : String
+    + LoginInfo(un : String, pw : String)
+    + getUsername() : String
+    + getPassword() : String
+    + Equals(other : LoginInfo) : Boolean
+}
+
+
+  abstract class Conversation {
+    - conversationId : String
+    - participants : List<User>
+    - messages : List<Message>
+    - createdAt : Instant
+    - mostRecentMessage : Instant 
+    + addMessage(m: Message) : void
+    + getMessages(n: int) : List<Message>
+    + getParticipants() : List<User>
+  }
+
+  class GroupChat {
+    - groupName : String
+    - creator : User
+    + addParticipant(u: User) : void
+    + removeParticipant(u: User) : void
+ + setName(n : String) 
++ getName() : String
+  }
+
+  class Message <<immutable>> <<serializable>> {
+    - text : String
+    - timestamp : Instant
+    - senderID : String
+    + Message(t : String, s : String)
+    + getText() : String
+    + getTimestamp() : Instant
+    + getSenderID() : String
+  }
+
+  class Report {
+    - resolved : Boolean
++ getResolved() : Boolean
++ resolve() 
+  }
+
+Conversation <|-- GroupChat
+Message <|-- Report
+User "1" *-- "1" LoginInfo
+Conversation "1" *-- "*" Message
+}
+@enduml
