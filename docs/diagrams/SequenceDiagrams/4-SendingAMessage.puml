@@ -2,26 +2,25 @@
 title Use Case 4: Sending a Message
 
 actor Sender as "User (Sender)"
-actor Recipient as "User (Recipient)"
 boundary GUI as "Client GUI"
+boundary cGUI as "Recipient GUI"
 control Client as "Client App"
+countrol Recipient as "Recipient Client"
 control Server as "Server"
-collections Cache as "Server Cache\n(Users + Conversation headers)"
-collections Store as "Server Persistent Storage\n(Messages)"
+collections Cache as "Server Cache"
 
 == Compose and send ==
 Sender -> GUI: Type message\nClick "Send"
-GUI -> Client: SendMessage(conversationId,\n messageText, attachments/meta)
-
-Client -> Server: PostMessage(conversationId,\n messagePayload, sessionToken)
+GUI -> Client: PassMessage(MessageObject)
+Client -> Client: Update local conversation
+Client --> GUI: Repaint conversation
+Client -> Server: SendMessage(MessageObject)
 
 == Server processing ==
-Server -> Store: Append message to conversation
-Store --> Server: Stored (messageId, timestamp)
-
-Server -> Cache: Lookup conversation participants
+Server -> Cache: Append message to conversation and lookup participants 
 Cache --> Server: Participant list + online status
-
+Server -> Server: Check Online participants' active conversation 
+Server --> Cache: Add conversation to participant's unread conversations\nfor all participants whose active conversation is not this conversation
 == Delivery to online recipients ==
 loop For each logged-in recipient
   Server --> Client: PushMessage(conversationId,\n messageId, messagePayload)
