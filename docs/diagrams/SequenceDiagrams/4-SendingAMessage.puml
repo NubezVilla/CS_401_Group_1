@@ -23,7 +23,7 @@ Server -> Server: Check Online participants' active conversation
 Server --> Cache: Add conversation to participant's unread conversations\nfor all participants whose active conversation is not this conversation
 == Delivery to online recipients ==
 loop For each logged-in recipient
-  Server --> Client: PushMessage(conversationId,\n messageId, messagePayload)
-  Client -> GUI: Display new message
+  Server --> Recipient: PushMessage(conversationId,\n messageId, messagePayload)
+  Client -> cGUI: Display new message
 end
 @enduml
