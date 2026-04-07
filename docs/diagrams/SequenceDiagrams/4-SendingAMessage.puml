@@ -5,7 +5,7 @@ actor Sender as "User (Sender)"
 boundary GUI as "Client GUI"
 boundary cGUI as "Recipient GUI"
 control Client as "Client App"
-countrol Recipient as "Recipient Client"
+control Recipient as "Recipient Client"
 control Server as "Server"
 collections Cache as "Server Cache"
 
