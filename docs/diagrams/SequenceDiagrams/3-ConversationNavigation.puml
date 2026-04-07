@@ -10,6 +10,7 @@ control Server as "Server"
 User -> GUI: Click conversation (conversationId)
 GUI -> Client: Request conversation view\n(conversationId)
 
+Client -> Server: Inform server of conversation switch(conversationID)
 alt Client has < 200 messages loaded for conversationId
   Client -> Server: GetRecentMessages(conversationId, limit=200)
   Server --> Client: Most recent up to 200 messages\n(or fewer if total < 200)
