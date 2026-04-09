@@ -46,7 +46,7 @@ loop When Group Chat Creator Removes participants
  Server -> Cache: Update Particiapnts list\n(remove user)
  Server --> Client: LeaveConversation OK
  == Notify remaining participants ==
- ref over Client, Server, Cache : Push User Left Message to other participants 
+ ref over Client, Server, Cache : Push User Removed Message to other participants 
 end
 
 == Leave group conversation ==
