@@ -1,0 +1,14 @@
+@startuml
+title Fetching Conversation History
+actor User
+participant Client
+participant Server
+participant FileManager
+
+User -> Client : scroll up / request older messages
+Client -> Server : requestOlderMessages(conversationID, oldestMessageID)
+Server -> FileManager : fetchOlderMessages(conversationID, oldestMessageID)
+FileManager --> Server : List<Message>
+Server --> Client : List<Message>
+Client --> User : display older messages
+@enduml
