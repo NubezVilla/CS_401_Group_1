@@ -1,0 +1,104 @@
+@startuml
+package "Payload Layer" {
+    class Wrapper {
+        - requestID : int
+        - payload : Object
+        + getRequestID() : int
+        + getPayload() : Object
+    }
+}
+
+package "Client Layer" {
+
+    class Client {
+        - serverAddress : String
+        - serverPort : int
+        - loggedInUser : User
+        - isConnected : boolean
+        - connectionTimeout : int = 30
+        + connect() : boolean
+        + disconnect() : void
+        + sendData(w: Wrapper) : void
+        + receiveData() : String
+        + authenticate(u: String, p: String) : boolean
+        + requestMessages(c: Conversation, n: int) : List
+    }
+
+    class ClientController {
+        - client : Client
+        - loggedInUser : User
+        - activeConversationId : int
+        - isAuthenticated : boolean
+        + login(username: String, password: String) : boolean
+        + logout() : void
+        + sendChatMessage(text: String, convId: int) : void
+        + loadConversation(convId: int) : void
+        + loadMoreMessages(convId: int, n: int) : void
+        + handleIncoming(raw: String) : void
+        + wrapAndSend(requestID: int, payload: Object) : void
+        + unwrapResponse(raw: String) : Wrapper
+        + updateGUI() : void
+    }
+
+    class ConversationHandler {
+        - conversations : List
+        - activeConversationId : int
+        + loadConversations(conversations: List) : void
+        + getConversation(convId: int) : Conversation
+        + getAllConversations() : List
+        + setActiveConversation(convId: int) : void
+        + getActiveConversation() : Conversation
+        + appendMessage(convId: int, m: Message) : void
+        + getMessages(convId: int, n: int) : List
+    }
+}
+
+package "Model Layer"{
+   abstract class Conversation {
+        - conversationId : int
+        - participants : List
+        - messages : List
+        - createdAt : long
+        + addMessage(m: Message) : void
+        + getMessages(n: int) : List
+        + getParticipants() : List
+    }
+
+    class Message{
+        - messageId : int
+        - text : String
+        - timestamp : long
+        - sender : User
+        - conversationId : int
+        - isRead : boolean
+        - encoding : String = "UTF-8"
+        + getText() : String
+        + getTimestamp() : long
+        + markAsRead() : void
+        + serialize() : String
+    }
+}
+
+package "GUI Layer" {
+    class GUIModule {
+        - currentView : String
+        - client : Client
+        + showLoginScreen() : void
+        + showConversations() : void
+        + showMessages(c: Conversation) : void
+        + showSearchBar() : void
+        + notifyUnread(c: Conversation) : void
+        + markConvAsRead(c: Conversation) : void
+        + showUserInfo(u: User) : void
+        + displayInputText() : void
+    }
+}
+ClientController "1" --> "1" Client              : uses
+ClientController "1" --> "1" ConversationHandler : manages
+Client ..> Wrapper                               : serializes requests with
+ConversationHandler "1" o-- "*" Conversation     : holds
+Conversation "1" *-- "1..*" Message              : contains
+"GUI Layer" "1" --> "1" ClientController    : commands
+GUIModule   "1" --> "1" ConversationHandler : reads from
+
+@enduml
