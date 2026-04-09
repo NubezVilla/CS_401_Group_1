@@ -11,7 +11,7 @@ collections Store as "Server Persistent Storage\n(Message Data)"
 ref over User, GUI, Client, Server : Searching For A User
 
 == Create conversation ==
-User -> GUI: Select one or more users\nClick "Start Conversation"
+User -> GUI: Select one users\nClick "Start Conversation"
 GUI -> Client: CreateConversation(participantUserIds)
 
 Client -> Server: CreateConversation(participants)
