@@ -1,0 +1,44 @@
+@startuml
+hide empty members
+package ServerApp{
+class Server{}
+class UserData{}
+class ClientHandler{}
+class FileManager{}
+class Log{}
+
+Server "1"--*"1" UserData 
+Server "*"--*"1" ClientHandler 
+Server "1"--*"1" FileManager
+Server "1"--*"1..*" Log
+}
+
+class Wrapper{}
+
+package ClientApp{
+class Client{}
+class ClientController{}
+Client "1"-[norank]->"1" ClientController : Uses
+}
+
+package GUI{
+class MainWindow{}
+class Screens{}
+
+MainWindow <-- Screens: Display On
+}
+
+
+ServerApp -right[hidden]-> Wrapper
+Wrapper -right[hidden]-> ClientApp
+ClientApp -right[hidden]-> GUI
+
+Server <.[norank].> Wrapper : Send Requests By
+Wrapper <..> Client : Send Requests By
+
+class DataModel {}
+
+Client -down-> DataModel : Writes To
+Screens <-down- DataModel : Reads From
+ClientController <-- Screens : Passes Commands
+@enduml
