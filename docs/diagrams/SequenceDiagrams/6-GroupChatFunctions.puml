@@ -10,43 +10,28 @@ collections Cache as "Server Cache\n(Users + Conversation headers)"
 collections Store as "Server Persistent Storage\n(Conversation headers)"
 
 == Create group conversation ==
-User -> GUI: Choose "Create Group Conversation"
-GUI -> Client: Request user directory
-Client -> Server: GetAllUsers()
-Server --> Client: User list
-Client -> ClientCache: Cache user list
-Client --> GUI: Provide user list for display
+User -> GUI: From a conversation, select Convert to Group Conversation
 
-User -> GUI: Select participants\nEnter group name\nClick "Create"
-GUI -> Client: CreateGroupConversation(name,\n participantUserIds)
+Client -> Server: CreateGroupConversation(currentConversation)
+Server -> Store: Create conversation file
+Store --> Server: Created (conversationId)
+Server -> Cache: Update conversation logs
+Server --> Client: CreateConversation OK
 
-Client -> Server: CreateConversation(type=group,\n name, participants)
-Server -> Store: Create conversation header\n(conversationId, name, participants)
-Store --> Server: Created (conversationId, header)
-Server -> Cache: Update conversation headers
-Server --> Client: CreateConversation OK\n(conversationId, header)
-
-Client -> ClientCache: Add conversation header
-Client -> GUI: Open group conversation view
+Client -> ClientCache: Add conversation to local
+Client -> GUI: Open new group conversation view
 
 == Add users later ==
 loop When user adds participants
   User -> GUI: Choose "Add Members"
-  GUI -> Client: Request user directory (if needed)
-  Client -> Server: GetAllUsers()
-  Server --> Client: User list
-  Client -> ClientCache: Cache/refresh user list
-  Client --> GUI: Provide user list
+  ref over User, GUI, Client, Server: Searching For A User
+  User -> GUI: Select user to add\nClick "Add"
+  GUI -> Client: AddParticipant(userIdToAdd)
+  Client -> Server: AddParticipant(userIdToAdd)
 
-  User -> GUI: Select users to add\nClick "Add"
-  GUI -> Client: AddParticipants(conversationId,\n userIdsToAdd)
-  Client -> Server: AddParticipants(conversationId,\n userIdsToAdd)
+  Server -> Cache: Update participants list\n(add user)
 
-  Server -> Store: Update participants list\n(add users)
-  Store --> Server: Updated header
-  Server -> Cache: Update conversation headers
-
-  Server --> Client: AddParticipants OK\n(updated header)
+  Server --> Client: AddParticipants OK
 
   == Notify logged-in participants ==
   loop For each logged-in participant client
@@ -59,12 +44,10 @@ end
 == Leave group conversation ==
 User -> GUI: Choose "Leave Group"
 GUI -> Client: LeaveConversation(conversationId)
-Client -> Server: RemoveParticipant(conversationId,\n userId=self)
+Client -> Server: RemoveParticipant(conversationId)
 
-Server -> Store: Update participants list\n(remove user)
-Store --> Server: Updated header
-Server -> Cache: Update conversation headers
-Server --> Client: LeaveConversation OK\n(updated header)
+Server -> Cache: Update participants list\n(remove user)
+Server --> Client: LeaveConversation OK
 
 == Notify remaining logged-in participants ==
 loop For each remaining logged-in participant client
