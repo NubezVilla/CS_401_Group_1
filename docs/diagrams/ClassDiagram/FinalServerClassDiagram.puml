@@ -1,0 +1,166 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Payload Layer" {
+  class Wrapper {
+    - requestID : int
+    - payload : Object
+    --
+    + getRequestID() : int
+    + getPayload() : Object
+  }
+
+  note right of Wrapper
+    Belongs to client and server
+  end note
+}
+
+package "Client Layer" {
+  class Client {
+    - serverAddress : String
+    - serverPort : int
+    - loggedInUser : User
+    - isConnected : boolean
+    - connectionTimeout : int = 30
+    --
+    + connect() : boolean
+    + disconnect() : void
+    + sendMessage(m : Message) : void
+    + requestMessages(c : Conversation, n : int) : List<Message>
+    + authenticate(u : String, p : String) : boolean
+    + receiveData() : String
+  }
+}
+
+package "Server Layer" {
+  class Server {
+    - PORT : int = 54927
+    - clientID : int
+    - isConnected : bool
+    - userData accountDataHandle
+    - FileManager fileManagerHandle
+    - clientList : ConcurrentHashMap<clientID, ClientHandler>
+    - clientSocket : Socket
+    - serverRequestSocket : Socket
+    --
+    + main() : void
+    + stopServer() : void
+    + acceptClient() : bool
+    + isConnected() : bool
+    + login(string, string) : bool
+    + logout() : void
+    + getClient(int) : ClientHandler
+    + submitRequest(ClientRequest) : void
+    + writeALog(FileManager) : void
+    + saveToFile(UserData) : void
+  }
+
+  class UserData {
+    - userAccountList : List<User>
+    - Conversations : static List<Conversation>
+    --
+    + getAccountList() : List
+    + getConversationList() : List
+    + addConversation(int ConversationID) : void
+    + addUser(User) : void
+  }
+
+  class ClientHandler {
+    - requestID : int
+    - socket : Socket
+    - server : Server
+    - clientInput : var
+    - isLoggedIn : bool
+    - account : User
+    - msg : Message
+    - logQueueToSave : Queue
+    - ConversationID : int
+    --
+    + ClientHandler(Socket) : void
+    + setUserAccount(User) : void
+    + waitForRequest() : void
+    + getSocket() : Socket
+    + sendConversationData(User) : bool
+    + sendMessage(Message) : bool
+    + updateActiveConversation(int) : void
+    + getActiveConversationID() : int
+  }
+
+  class FileManager {
+    - conversationFolder : File
+    - userDataFolder : File
+    - logFolder : File
+    - listOfConversationFiles : File[]
+    - listOfUserFiles : File[]
+    - listOfLogFiles : File[]
+    --
+    + loadUserData(UserData) : void
+    + loadConversationData(UserData) : void
+    + fetchConversationData(int) : Conversation
+    + fetchOlderMessages(int, int) : List<Message>
+    + appendMessage(int, Message) : void
+    + saveUserData(UserData) : void
+    + createLog(String, String) : Log
+    + saveLog(Log, String) : void
+  }
+
+  class Log {
+    - filePath : String
+    - logType : String
+    --
+    + writeEntry(data : String) : void
+    + readAll() : String
+    + backup() : void
+  }
+
+  note left of UserData
+    Must be Synnchronized
+  end note
+
+  note bottom of FileManager
+    may have to be synchronized?
+  end note
+
+  note bottom of Log
+    may have to be synchronized?
+  end note
+}
+
+package "Model Layer" {
+  abstract class Conversation {
+    - conversationId : int
+    - participants : List<User>
+    - messages : List<Message>
+    - createdAt : long
+    --
+    + addMessage(m : Message) : void
+    + getMessages(n : int) : List<Message>
+    + getParticipants() : List<User>
+  }
+
+  class Message <<immutable>> {
+    - messageId : int
+    - text : String
+    - timestamp : long
+    - sender : User
+    - conversationId : int
+    - isRead : boolean
+    - encoding : String = "UTF-8"
+    --
+    + getText() : String
+    + getTimestamp() : long
+    + markAsRead() : void
+    + serialize() : String
+  }
+}
+
+Client <..> Server : TCP/IP
+
+Server "1" *-- "1" UserData
+Server "1" *-- "1..*" ClientHandler
+Server "1" *-- "1" FileManager
+Server "1" *-- "1..*" Log : writes to
+Server "1" *-- "1..*" Conversation : stores
+
+Conversation "1" *-- "1..*" Message : contains
+@enduml
