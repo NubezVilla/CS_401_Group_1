@@ -5,11 +5,13 @@ class MainWindow <<extends JFrame>>{
 - contentPane : JPanel
 - Layout : CardLayout
 - navigator : ScreenNavigator
-- <u>modelHandle : ClientModel 
-+ MainWindow(model : ClientModel)
+- <u>modelHandle : DataModel 
+- <u>clientHandle : ClientController
++ MainWindow(model : DataModel, client : ClientController)
 - initializeScreens() : void 
 + startup() : void
-+ <u>getModel() : ClientModel
++ <u>getModel() : DataModel
++ <u>getClient() : ClientController
 
 }
 
