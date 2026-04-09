@@ -2,15 +2,9 @@
 hide empty members
 package ServerApp{
 class Server{}
-class UserData{}
-class ClientHandler{}
-class FileManager{}
-class Log{}
+class ServerComponents{}
 
-Server "1"--*"1" UserData 
-Server "*"--*"1" ClientHandler 
-Server "1"--*"1" FileManager
-Server "1"--*"1..*" Log
+Server *-- ServerComponents
 }
 
 class Wrapper{}
@@ -18,7 +12,7 @@ class Wrapper{}
 package ClientApp{
 class Client{}
 class ClientController{}
-Client "1"-[norank]->"1" ClientController : Uses
+Client <-[norank]- ClientController : Uses
 }
 
 package GUI{
@@ -34,7 +28,7 @@ Wrapper -right[hidden]-> ClientApp
 ClientApp -right[hidden]-> GUI
 
 Server <.[norank].> Wrapper : Send Requests By
-Wrapper <..> Client : Send Requests By
+Wrapper <..[norank]..> Client : Send Requests By
 
 class DataModel {}
 
