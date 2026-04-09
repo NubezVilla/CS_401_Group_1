@@ -1,0 +1,32 @@
+@startuml
+title Push New Message to Conversation Participants
+
+actor Sender as "User (Sender)"
+control Server as "Server"
+collections Cache as "Server Cache\n(Conversation messages)"
+control Client as "Recipient Client App"
+boundary GUI as "Recipient GUI"
+
+== Message received by server ==
+Sender -> Server: Submit message for conversation
+Server -> Cache: Add message to conversation cache
+
+== Notify participants ==
+Server -> Cache: Get all participants\nexcluding sender
+Cache --> Server: Participant list
+
+loop For each recipient
+  Server -> Cache: Check recipient connection status\nand active conversation
+
+  alt Recipient not connected
+    Server -> Cache: Mark conversation as unread\nfor recipient
+  else Recipient connected but viewing different conversation
+    Server -> Cache: Mark conversation as unread\nfor recipient
+    Server --> Client: Notify new message in conversation
+    Client -> GUI: Show unread/new message indicator
+  else Recipient connected and viewing this conversation
+    Server --> Client: Deliver new message
+    Client -> GUI: Display new message in conversation
+  end
+end
+@enduml
