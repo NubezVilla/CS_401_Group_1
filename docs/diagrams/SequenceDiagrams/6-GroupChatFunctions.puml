@@ -22,7 +22,7 @@ Client -> ClientCache: Add conversation to local
 Client -> GUI: Open new group conversation view
 
 == Add users later ==
-loop When user adds participants
+loop When Group Chat Creator adds participants
   User -> GUI: Choose "Add Members"
   ref over User, GUI, Client, Server: Searching For A User
   User -> GUI: Select user to add\nClick "Add"
@@ -34,11 +34,19 @@ loop When user adds participants
   Server --> Client: AddParticipants OK
 
   == Notify logged-in participants ==
-  loop For each logged-in participant client
-    Server --> Client: PushConversationUpdate\n(conversationId, updated header)
-    Client -> ClientCache: Update cached header
-    Client -> GUI: Update participants UI
-  end
+  ref over Client, Server, Cache : Push User Added Message to other participants 
+end
+== Remove Users ==
+loop When Group Chat Creator Removes participants
+ User -> GUI: Select "Remove Members" 
+ GUI -> User: Display List of Participands
+ User -> GUI: Select User to Remove
+ GUI -> Client: RemoveUser(UserID)
+ Client -> Server: RemoveUser(UserID)
+ Server -> Cache: Update Particiapnts list\n(remove user)
+ Server --> Client: LeaveConversation OK
+ == Notify remaining participants ==
+ ref over Client, Server, Cache : Push User Left Message to other participants 
 end
 
 == Leave group conversation ==
@@ -49,11 +57,8 @@ Client -> Server: RemoveParticipant(conversationId)
 Server -> Cache: Update participants list\n(remove user)
 Server --> Client: LeaveConversation OK
 
-== Notify remaining logged-in participants ==
-loop For each remaining logged-in participant client
-  Server --> Client: PushConversationUpdate\n(conversationId, updated header)
-  Client -> ClientCache: Update cached header
-  Client -> GUI: Update participants UI
+== Notify remaining participants ==
+ref over Client, Server, Cache : Push User Left Message to other participants 
 end
 
 Client -> ClientCache: Remove/mark conversation\nas left for this user
