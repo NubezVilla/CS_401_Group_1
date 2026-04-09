@@ -1,0 +1,21 @@
+@startuml
+title Loading User and Conversation data
+
+actor "System Startup" as Startup
+participant Server
+participant FileManager
+participant UserData
+
+Startup -> Server : startServer()
+Server -> FileManager : loadUserData(UserData)
+FileManager -> UserData : addUser(User)
+FileManager -> UserData : addUser(User)
+FileManager -> UserData : addUser(User)
+
+Server -> FileManager : loadConversationData(UserData)
+FileManager -> UserData : addConversation(conversationID)
+FileManager -> UserData : addConversation(conversationID)
+FileManager -> UserData : addConversation(conversationID)
+
+Server --> Startup : server ready
+@enduml
