@@ -8,22 +8,7 @@ control Server as "Server"
 collections ClientCache as "Client Cache\n(User directory + Conversation headers)"
 collections Store as "Server Persistent Storage\n(Message Data)"
 
-== Open user search ==
-User -> GUI: Navigate to "Search Users"
-GUI -> Client: Request user directory
-
-Client -> Server: GetAllUsers()
-Server --> Client: User list (userId, name, username, etc.)
-Client -> ClientCache: Store user list
-
-== Search / filter ==
-loop While user types
-  User -> GUI: Type in search bar (query)
-  GUI -> Client: FindMatchingUsers(query)
-  Client -> ClientCache: Filter user list by query
-  ClientCache --> Client: Matching users
-  Client --> GUI: Display matching users
-end
+ref over User, GUI, Client, Server : Searching For A User
 
 == Create conversation ==
 User -> GUI: Select one or more users\nClick "Start Conversation"
