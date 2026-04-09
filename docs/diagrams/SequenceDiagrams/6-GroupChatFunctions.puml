@@ -59,7 +59,7 @@ Server --> Client: LeaveConversation OK
 
 == Notify remaining participants ==
 ref over Client, Server, Cache : Push User Left Message to other participants 
-end
+
 
 Client -> ClientCache: Remove/mark conversation\nas left for this user
 Client -> GUI: Close conversation view\nReturn to conversation list
