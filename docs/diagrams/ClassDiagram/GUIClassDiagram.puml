@@ -1,5 +1,5 @@
 @startuml
-
+hide empty members
 package GUI{
 class MainWindow <<extends JFrame>>{
 - contentPane : JPanel
@@ -50,7 +50,7 @@ CLIENT
 IT
 ACCOUNT
 }
-hide empty members
+
 }
 MainWindow "1"*--"1" ScreenNavigator
 ScreenNavigator "1"o--*"1" LoginScreen
