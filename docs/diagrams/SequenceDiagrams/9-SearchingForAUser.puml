@@ -1,0 +1,22 @@
+@startuml
+title Search for a User
+
+actor User
+boundary GUI as "Client GUI"
+control Client as "Client App"
+control Server as "Server"
+collections LocalStore as "Client Local Store\n(User directory)"
+
+User -> GUI: Type into search bar
+GUI -> Client: Request user data
+Client -> Server: Request user data
+Server --> Client: Return user data
+Client -> LocalStore: Update local store\nwith any new user data
+Client --> GUI: Provide user data
+
+loop While user is typing
+  GUI -> LocalStore: Match profiles\nagainst search text
+  LocalStore --> GUI: Matching user profiles
+  GUI -> GUI: Display matching profiles
+end
+@enduml
