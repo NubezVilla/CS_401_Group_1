@@ -17,13 +17,5 @@ Client --> GUI: Repaint conversation
 Client -> Server: SendMessage(MessageObject)
 
 == Server processing ==
-Server -> Cache: Append message to conversation and lookup participants 
-Cache --> Server: Participant list + online status
-Server -> Server: Check Online participants' active conversation 
-Server --> Cache: Add conversation to participant's unread conversations\nfor all participants whose active conversation is not this conversation
-== Delivery to online recipients ==
-loop For each logged-in recipient
-  Server --> Recipient: PushMessage(conversationId,\n messageId, messagePayload)
-  Client -> cGUI: Display new message
-end
+ref over Sender, cGUI, Server, Cache, Recipient : Push New Message
 @enduml
