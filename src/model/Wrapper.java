@@ -14,7 +14,7 @@ public class Wrapper implements Serializable{
 		return payload;
 	}
 	
-	public RequestType getRequestID() {
+	public RequestType getRequestType() {
 		return requestID;
 	}
 }
