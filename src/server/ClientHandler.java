@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import model.LoginInfo;
 import model.Message;
 import model.RequestType;
 import model.User;
@@ -21,7 +22,7 @@ public class ClientHandler implements Runnable {
 	private Message msg;
 	private Message logQueue[];
 	private int conversationID;
-	
+	User acc = new User("User1", "1234");//username, password
 	
 	public ClientHandler(Socket socket) {
 		this.clientSocket = socket;
@@ -32,6 +33,10 @@ public class ClientHandler implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("Connected: " + clientSocket);
+		//simulate user accounts to test login 
+		
+		
+		
 		try {
 			/*
 			 * I have to test receiving objects over the socket.
@@ -54,61 +59,72 @@ public class ClientHandler implements Runnable {
 		       //the first thing the client handler should do is check the request type
 		        RequestType request = receivedObject.getRequestType();
 		        switch(request) {
+		        	//Alejandro
 			        case LOGIN:
 			            System.out.println("Logging in");
 			            handleLogin(out, receivedObject);
 			            break;
 		
+			        //Alejandro
 			        case LOGOUT:
 			            System.out.println("Logging out");
 			            handleLogout(out, receivedObject);
 			            break;
 		
+			        //Riya
 			        case REGISTER:
 			            System.out.println("Registering user");
 			            handleRegister(out, receivedObject);
 			            break;
-		
+			        //Riya
 			        case GET_USER_INFO:
 			            System.out.println("Getting user info");
 			            handleGetUserInfo(out, receivedObject);
 			            break;
 		
+			        //Riya
 			        case CREATE_CONVERSATION:
 			            System.out.println("Creating conversation");
 			            handleCreateConversation(out, receivedObject);
 			            break;
 		
+			        //Riya
 			        case CREATE_GROUP_CONVERSATION:
 			            System.out.println("Creating group conversation");
 			            handleCreateGroupConversation(out, receivedObject);
 			            break;
 		
+			        //Alejandro
 			        case GET_CONVERSATION:
 			            System.out.println("Getting conversation");
 			            handleGetConversation(out, receivedObject);
 			            break;
 		
+			        //Alejandro
 			        case ADD_PARTICIPANT:
 			            System.out.println("Adding participant");
 			            handleAddParticipant(out, receivedObject);
 			            break;
 		
+			        //Alejandro
 			        case REMOVE_PARTICIPANT:
 			            System.out.println("Removing participant");
 			            handleRemoveParticipant(out, receivedObject);
 			            break;
 		
+			        //Alejandro
 			        case SEND_MESSAGE:
 			            System.out.println("Sending message");
 			            handleSendMessage(out, receivedObject);
 			            break;
 		
+			        //Riya    
 			        case GET_MESSAGES:
 			            System.out.println("Getting messages");
 			            handleGetMessages(out, receivedObject);
 			            break;
 		
+			        //Riya    
 			        case GET_NEW_MESSAGES:
 			            System.out.println("Getting new messages");
 			            handleGetNewMessages(out, receivedObject);
@@ -134,7 +150,12 @@ public class ClientHandler implements Runnable {
 		 * UserData should have all of the users in the system along 
 		 * with their user names and passwords. 
 		 */
-		msg = new Message("LOGGIN IN", "Server");
+		//check hash codes for equivalence
+		LoginInfo existingAccountInfo = acc.getLoginInfo();
+		LoginInfo loginRequest = (LoginInfo) obj.getPayload();
+		boolean loginSuccess = existingAccountInfo.equals(loginRequest);
+		System.out.println("Login success: " + loginSuccess);
+		msg = new Message("LOGGING IN", "Server");
 		Wrapper objectToSend = new Wrapper(msg, RequestType.LOGIN);
 		try {
 			out.writeObject(objectToSend);
