@@ -1,6 +1,6 @@
 package client;
 import javax.swing.DefaultListModel;
-
+import GUI.MessageListModel;
 import model.*;
 //Singleton Data Model for read by GUI and write by Client
 public class DataModel {
@@ -14,10 +14,11 @@ public class DataModel {
 	private DefaultListModel<Conversation> conversationList;
 	//Something in logic should make sure this is updated whenever the currentConversation gets
 	//Messages added to it
-	private DefaultListModel<Message> currentConversationMessageList;
-	//Constructor shouldn't initialize anything 
+	private MessageListModel currentConversationMessageList;
+
 	protected DataModel() {
-		
+		conversationList = new DefaultListModel<Conversation>();
+		currentConversationMessageList = new MessageListModel();
 	}
 	//Global access handle
 	public static synchronized DataModel getInstance() {
@@ -33,14 +34,25 @@ public class DataModel {
 		return conversationList;
 	}
 	
-	public DefaultListModel<Message> getCurrentConversationMessageList(){
+	public MessageListModel getCurrentConversationMessageList(){
 		return currentConversationMessageList;
 	}
 	
 	public Conversation getCurrentConversation() {
 		return currentConversation;
 	}
-	protected void setCurrentUser(User c) {
+	//DEBUG: Public for GUI Testing
+	public void setCurrentUser(User c) {
 		currentUser = c;
 	}
+	
+	public void setConversationList() {
+		
+	}
+	//DEBUG: Public for GUI Testing 
+	public void setCurrentConversation(int index) {
+		currentConversation = conversationList.elementAt(index);
+		currentConversationMessageList.setMessages(conversationList.elementAt(index).getMessages());
+	}
+	
 }
