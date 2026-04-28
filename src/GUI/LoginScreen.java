@@ -8,7 +8,7 @@ import java.awt.GridBagLayout;
 
 import javax.swing.*;
 
-public class LoginScreen extends JPanel {
+public class LoginScreen extends JPanel{
 	private ScreenNavigator controller;
 	private ClientCalls client;
 	
@@ -22,10 +22,10 @@ public class LoginScreen extends JPanel {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		
-		JLabel title = new JLabel("PLACEHOLDER");
+		setBackground(new Color(255, 243, 176));
+		JLabel title = new JLabel("HYVE");
 		title.setFont(Fonts.title);
-		title.setForeground(Color.CYAN);
+		title.setForeground(Color.ORANGE);
 		title.setHorizontalAlignment(JLabel.CENTER);
 		title.setVerticalAlignment(JLabel.CENTER);
 		

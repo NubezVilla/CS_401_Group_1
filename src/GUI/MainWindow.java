@@ -8,14 +8,13 @@ public class MainWindow extends JFrame {
 	private CardLayout layout;
 	private ScreenNavigator controller;
 	
-	//Add client controller once that exists
 	public MainWindow (ClientCalls c) {
 		contentPane = new JPanel();
 		this.setContentPane(contentPane);
 		layout = new CardLayout();
 		controller =  new ScreenNavigator(layout, contentPane);
 		contentPane.setLayout(layout);
-		
+		this.setTitle("Hyve");
 		intializeScreens(c);
 		
 	}

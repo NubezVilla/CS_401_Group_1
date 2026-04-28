@@ -13,12 +13,6 @@ public interface ClientCalls {
 	 */
 	public boolean loginAttempt(String username, String password);
 	
-	/**Searches the list of users for those matching the provided string. This should
-	 * send the string/regex to the server for query against the server's list. 
-	 * @param matching a String that is matched against users' names, usernames, and IDs.
-	 * @return A list of users matching the provided String
-	 */
-	public ArrayList<User> searchUsers(String matching);
 	
 	/**For a given ID, returns the User associated with it. 
 	 * 
@@ -26,6 +20,13 @@ public interface ClientCalls {
 	 * @return the user that has the ID requested
 	 */
 	public User getUserByID(String id);
+	
+	/**Searches the list of users for those matching the provided string. This should
+	 * send the string/regex to the server for query against the server's list. 
+	 * @param matching: a String that is matched against users' names, and IDs.
+	 * @return A list of users matching the provided String
+	 */
+	public ArrayList<User> searchUsers(String matching);
 	
 	/**Responsible for two things:
 	 * <br>
@@ -42,4 +43,22 @@ public interface ClientCalls {
 	 * @param id conversation to fetch messages from
 	 */
 	public void fetchMessages(String id);
+	/**Takes the paramter text, makes it into a message, adds it to the current conversation,
+	 * then passes it to the server. 
+	 * @param text to be sent
+	 */
+	public void sendMessage(String text);
+	
+	/** Updates target with the other four strings. 
+	 * Should update the user cache and
+	 * inform the server that it needs to do the same. 
+	 * <br>
+	 * Note that any of the strings may be blank, and any blank strings should be ignored. 
+	 * @param target user to update
+	 * @param newName
+	 * @param newPosition
+	 * @param newUsername
+	 * @param newPassword
+	 */
+	public void updateUser(User target, String newName, String newPosition, String newUsername, String newPassword);
 }
