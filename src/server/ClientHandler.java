@@ -5,24 +5,27 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashSet;
 
+import model.Conversation;
 import model.LoginInfo;
 import model.Message;
 import model.RequestType;
+import model.ResponseType;
 import model.User;
 import model.Wrapper;
 
 public class ClientHandler implements Runnable {
 	private Socket clientSocket;
-	private RequestType request;
-	private Server server;
-	private boolean isLoggedIn;
+	private ObjectOutputStream out;
+	private boolean isLoggedIn = false;
 	private User userAccount;
 	private Message msg;
-	private Message logQueue[];
-	private int conversationID;
-	User acc = new User("User1", "1234");//username, password
+	private ArrayList<Message> logQueue;
+	private String activeConversationID;
 	
 	public ClientHandler(Socket socket) {
 		this.clientSocket = socket;
@@ -33,9 +36,7 @@ public class ClientHandler implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("Connected: " + clientSocket);
-		//simulate user accounts to test login 
-		
-		
+
 		
 		try {
 			/*
@@ -45,26 +46,43 @@ public class ClientHandler implements Runnable {
 			 */
 			//get the object output stream
 			//this is to send objects over the socket
-			  //output
+			//output
 	        OutputStream outputStream = clientSocket.getOutputStream();
-	        ObjectOutputStream out = new ObjectOutputStream(outputStream);
+	        out = new ObjectOutputStream(outputStream);
 	        //input
 	        InputStream inputStream = clientSocket.getInputStream();
 	        ObjectInputStream in = new ObjectInputStream(inputStream);
-			while(true) {
+	        
+	        logQueue = new ArrayList<>();
 			
-		        
+			/*
+			 * Login must be its own while loop. 
+			 * It must check for isLoggedIn and the type.
+			 */
+	        
+			while(!isLoggedIn) {
+				
+				Wrapper expectedLoginRequest = (Wrapper) in.readObject();
+				isLoggedIn = handleLogin(out, expectedLoginRequest);
+			
+			}
+			/*** SHOULD ONLY EXECUTE AFTER LOGGING IN ***/
+			while(true) {
 		        Wrapper receivedObject = (Wrapper) in.readObject();
 		        
 		       //the first thing the client handler should do is check the request type
 		        RequestType request = receivedObject.getRequestType();
 		        switch(request) {
+		        /*
+		         * THIS CASE IS BEING HANDLED OUTISDE THIS WHILE STATEMENT
+		         * A USER ONLY NEEDS TO LOGIN ONCE.
 		        	//Alejandro
 			        case LOGIN:
 			            System.out.println("Logging in");
 			            handleLogin(out, receivedObject);
 			            break;
-		
+		         */
+		        
 			        //Alejandro
 			        case LOGOUT:
 			            System.out.println("Logging out");
@@ -129,7 +147,12 @@ public class ClientHandler implements Runnable {
 			            System.out.println("Getting new messages");
 			            handleGetNewMessages(out, receivedObject);
 			            break;
-		
+			            
+			        case UPDATE_ACTIVE_CONVERSATION:
+			        	System.out.println("Updating active conversation");
+			        	handleUpdatingActiveConversation(out, receivedObject);
+			        	break;
+	
 			        default:
 			            System.out.println("Invalid Request");
 			            break;
@@ -144,27 +167,66 @@ public class ClientHandler implements Runnable {
 		}
 	}//end of run
 	
-	private void handleLogin(ObjectOutputStream out, Wrapper obj) {
+
+
+	private boolean handleLogin(ObjectOutputStream out, Wrapper obj) {
 		/* 
 		 * The obj has the login credentials that must be checked.
 		 * UserData should have all of the users in the system along 
 		 * with their user names and passwords. 
 		 */
-		//check hash codes for equivalence
-		LoginInfo existingAccountInfo = acc.getLoginInfo();
-		LoginInfo loginRequest = (LoginInfo) obj.getPayload();
-		boolean loginSuccess = existingAccountInfo.equals(loginRequest);
-		System.out.println("Login success: " + loginSuccess);
-		msg = new Message("LOGGING IN", "Server");
-		Wrapper objectToSend = new Wrapper(msg, RequestType.LOGIN);
-		try {
-			out.writeObject(objectToSend);
-			out.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		RequestType type = obj.getRequestType();
+		boolean accountFound = false;
+		if(type != RequestType.LOGIN)
+		{
+			msg = new Message("WRONG REQUEST TYPE\nNOT LOGGED IN", "Server");
+			Wrapper objectToSend = new Wrapper(msg, ResponseType.LOGIN_FAIL);
+			try {
+				out.writeObject(objectToSend);
+				out.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		
+		else {
+			
+			LoginInfo loginInfo = (LoginInfo) obj.getPayload();
+			/*** NEED TO ADD ERROR HANDLING FOR INCORRECT PAYLOAD TYPES ***/
+			//get the UserData form the UserData class later
+			System.out.println("loginInfo code: " + loginInfo.hashCode());
+			userAccount = Server.getUserData(loginInfo.hashCode());
+			if(userAccount != null) {
+				msg = new Message("LOGGING IN", "Server");
+		        Wrapper response = new Wrapper(msg, ResponseType.LOGIN_SUCCESS);
+		        isLoggedIn = true;
+		        accountFound = true;
+		        Server.registerActiveUser(userAccount.getUserID(), this);
+		        /** THEIR ACCOUNT MUST BE LOADED INTO THE HANDLER **/
+		        //userAccount = UserData.getUser();
+		        try {
+		            out.writeObject(response);
+		            out.flush();
+		        } catch (IOException e) {
+		            e.printStackTrace();
+		        }
+		        return accountFound;
+			}
+			else
+			{
+				System.out.println("ACCOUNT NOT FOUND");
+				msg = new Message("WRONG USER/PASS", "Server");
+				Wrapper response = new Wrapper(msg, ResponseType.LOGIN_FAIL);
+				try {
+					out.writeObject(response);
+					out.flush();
+				} catch (IOException e) {
+				        e.printStackTrace();
+			    }
+				    return accountFound;
+			}
+		}
+		return accountFound;
 	}
 	
 	private void handleLogout(ObjectOutputStream out, Wrapper obj) {
@@ -175,11 +237,20 @@ public class ClientHandler implements Runnable {
 		 * user profile if it was updated, etc.
 		 * It must close the socket and send a successful logout response.
 		 */
-		msg = new Message("LOGGIN OUT", "Server");
-		Wrapper objectToSend = new Wrapper(msg, RequestType.LOGOUT);
+		
+		//FileManager must be used to save files to disk
+		//fileManager.saveLogs(logQueue[]);
+		
+		msg = new Message("LOGGING OUT", "Server");
+		Wrapper response = new Wrapper(msg, ResponseType.LOGOUT_SUCCESS);
+		if(userAccount != null) {
+			Server.removeUser(userAccount.getUserID());
+			isLoggedIn = false;
+		}
 		try {
-			out.writeObject(objectToSend);
+			out.writeObject(response);
 			out.flush();
+			clientSocket.close();
 		} catch (IOException e) {
 			// TODO 
 			e.printStackTrace();
@@ -328,16 +399,76 @@ public class ClientHandler implements Runnable {
 		 * This method needs to store the message that is being sent
 		 * into the logQueue[] array to save the messages to a log later.
 		 */
-		msg = new Message("message recieved, back to you", "ServerID");
-    	Wrapper objectToSend = new Wrapper(msg, RequestType.SEND_MESSAGE);
-    	try {
-			out.writeObject(objectToSend);
-			out.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Message messageToSend = (Message) obj.getPayload();
+		
+		System.out.println(messageToSend.getText());
+		logQueue.add(messageToSend); //THIS LOG MUST BE SAVED TO DISK BEFORE LOGOUT
+		
+		/* Search the ConversationList in UserData to find the conversation
+		 * that the user is a part of.
+		 * Get the participants from the Conversation object.
+		 * Then get the UserID's from the Participant list
+		 * to find their ClientHandlers in the userList in the Server.
+		 * the userList<User, ClientHandler> has each active user and their
+		 * clientHandler. Each ClientHandler has a socket to write to.
+		 */
+		
+		/*
+		 * for(each conversation in ConversationList) {
+		 * 	check conversationID with ConversationList.conversationID
+		 *  if the correct ID is found
+		 *    get the participants of that Conversation
+		 *    Get each Users ClientSocket to write to
+		 *    send the message through their socket
+		 */
+		//first use conversationID to find the correct conversation
+		//a map in the Server currently holds all the conversations
+		Conversation currentConversation = Server.getConversation(activeConversationID);
+	    if (currentConversation == null) {
+            msg = new Message("CONVERSATION NOT FOUND", "Server");
+            Wrapper response = new Wrapper(msg, ResponseType.MESSAGE_NOT_SENT);
+            try { 
+            	out.writeObject(response);
+            	out.flush();
+            } catch (IOException e) {
+            	e.printStackTrace();
+            }
+            return;
+        }
+		/* 
+		 * The currentConversation is the current conversation that the user is viewing.
+		 * Conversation has a list of participants to send a message to.
+		 */
+		//get the list of participants from the conversation
+		HashSet<String> conversationParticipants = currentConversation.getParticipants();
+		//get the UserIDs so you can send a message to their ClientHandler.clientSocket
+		for(String userID : conversationParticipants) {
+			//get an activeClient by passing userID into activeClient(user)
+			ClientHandler handler = Server.getActiveClient(userID); //returns client handle associated with userID
+			//if the handler is the user is offline
+			//you must save unread messages to send to the User when they log in
+            if (handler == null) {
+                continue;
+            }
+            //if the participant is the sender, skip them
+            if (userID.equals(this.getUserID())) {
+                continue;
+            }
+			//get their socket to write to
+            try {
+				handler.sendToClient(new Wrapper(messageToSend, ResponseType.MESSAGE_SENT));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
     	
+	}
+	
+	//this is how to safely send to clients on threads
+	public synchronized void sendToClient(Wrapper obj) throws IOException {
+	    out.writeObject(obj);
+	    out.flush();
 	}
 	
 	private void handleGetMessages(ObjectOutputStream out, Wrapper obj) {
@@ -376,8 +507,35 @@ public class ClientHandler implements Runnable {
 		
 	}
 	
+	private void handleUpdatingActiveConversation(ObjectOutputStream out, Wrapper obj) {
+		/*
+		 * The User has switched to a different active conversation.
+		 * The conversationID must be updated to be able to get
+		 * the correct user to send messages to
+		 */
+		String updatedConversationID = (String) obj.getPayload();
+		activeConversationID = updatedConversationID;
+		msg = new Message("ACTIVE CONVERSATION UPDATED", "Server");
+		Wrapper objectToSend = new Wrapper(msg, ResponseType.ACTIVE_CONVERSATION_UPDATED);
+		try {
+			out.writeObject(objectToSend);
+			out.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	/*** END REQUEST HANDLING ***/
 	
 	
+	private String getUserID() {
+		return userAccount.getUserID();
+	}
+	
+	private User getUserAccount() {
+		return userAccount;
+	}
 	
 	
 }//end of class
