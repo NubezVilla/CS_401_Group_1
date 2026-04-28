@@ -62,6 +62,10 @@ public class User implements Serializable {
 		return unreadConversationIDs;
 	}
 	
+	public void setLoginInfo(String un, String pw) {
+		logininfo = new LoginInfo(un, pw);
+	}
+	
 	public void setName(String n) {
 		realName = n;
 	}
