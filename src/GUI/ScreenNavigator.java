@@ -1,5 +1,6 @@
 package GUI;
 import java.awt.CardLayout;
+import java.awt.Component;
 
 import javax.swing.*;
 public class ScreenNavigator {
@@ -13,5 +14,12 @@ public class ScreenNavigator {
 	
 	public void show(Screen s) {
 		layout.show(container, s.name());
+		for(Component c : container.getComponents()) {
+			if(c.isVisible()) {
+				if (c instanceof DisplayScreen) {
+					((DisplayScreen) c).whenShown();
+				}
+			}
+		}
 	}
 }

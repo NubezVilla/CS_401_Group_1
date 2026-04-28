@@ -1,5 +1,7 @@
 package GUI;
 
+import java.awt.Color;
+
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -11,6 +13,7 @@ public class ITScreen extends JPanel {
 	public ITScreen(ScreenNavigator c, ClientCalls client) {
 		controller = c;
 		this.client = client;
+		setBackground(new Color(255, 243, 176));
 		initalize();
 	}
 
