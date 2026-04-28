@@ -3,9 +3,9 @@ import java.io.Serializable;
 
 public class Wrapper implements Serializable{
 	Object payload;
-	int requestID;
+	RequestType requestID;
 	
-	public Wrapper(Object payload, int requestID) {
+	public Wrapper(Object payload, RequestType requestID) {
 		this.payload = payload;
 		this.requestID = requestID;
 	}
@@ -14,7 +14,7 @@ public class Wrapper implements Serializable{
 		return payload;
 	}
 	
-	public int getRequestID() {
+	public RequestType getRequestType() {
 		return requestID;
 	}
 }
