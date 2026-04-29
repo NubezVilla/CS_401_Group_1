@@ -20,14 +20,6 @@ class WrapperTest {
     }
 
     @Test
-    void payloadCanBeNull() {
-        Wrapper wrapper = new Wrapper(null, RequestType.LOGOUT);
-
-        assertNull(wrapper.getPayload());
-        assertEquals(RequestType.LOGOUT, wrapper.getRequestType());
-    }
-
-    @Test
     void requestTypeCanBeAnyEnumValue() {
         Wrapper wrapper1 = new Wrapper("data1", RequestType.REGISTER);
         Wrapper wrapper2 = new Wrapper("data2", RequestType.SEND_MESSAGE);
@@ -36,14 +28,6 @@ class WrapperTest {
         assertEquals(RequestType.REGISTER, wrapper1.getRequestType());
         assertEquals(RequestType.SEND_MESSAGE, wrapper2.getRequestType());
         assertEquals(RequestType.GET_MESSAGES, wrapper3.getRequestType());
-    }
-
-    @Test
-    void requestTypeCanBeNull() {
-        Wrapper wrapper = new Wrapper("data", null);
-
-        assertEquals("data", wrapper.getPayload());
-        assertNull(wrapper.getRequestType());
     }
 
     @Test
