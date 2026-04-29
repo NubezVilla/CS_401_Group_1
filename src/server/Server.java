@@ -2,11 +2,15 @@ package server;
 
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 import model.Conversation;
 import model.GroupConversation;
+import model.Message;
 import model.User;
 
 
@@ -15,19 +19,20 @@ public class Server {
 	private boolean isConnected;
 	//FileManager manager
 	//UserData userDataHandle
-	private static ConcurrentHashMap<String, ClientHandler> activeUserList = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<String, ClientHandler> activeUserList = new ConcurrentHashMap<>();//userID, Client
 	//UserData class object
-	private static ConcurrentHashMap<Integer, User> userData = new ConcurrentHashMap<>(); 
+	private static ConcurrentHashMap<Integer, User> userData = new ConcurrentHashMap<>();//userHashcode, User account
 	//UserData class object
-	private static ConcurrentHashMap<String, Conversation> conversations = new ConcurrentHashMap<>(); 	
+	private static ConcurrentHashMap<String, Conversation> conversations = new ConcurrentHashMap<>();//conversationID, Conversation 	
 	
 	
 	public static void main(String[] args) throws Exception {
 		/* There has to be a lot of setup before the server can start listening.
 		 * The server needs to load all user files into the data structures inside UserData.
 		 */
-		//manager.load()
-		//userDataHandle.fillDataStructures()
+		//manager.loadConversations(conversations);
+		//manager.loadUserData(userData);
+		//
 		
 		/*
 		 * I need to simulate existing accounts and conversations
@@ -55,6 +60,8 @@ public class Server {
 		userData.put(user4.getLoginInfo().hashCode(), user4);
 		userData.put(user5.getLoginInfo().hashCode(), user5);
 		
+		
+		
 		try (var listener = new ServerSocket(port)) {
 			System.out.println("Server is running...");
 	
@@ -71,14 +78,53 @@ public class Server {
 		activeUserList.put(userID, client);
 	}
 	
-	public static void removeUser(String user) {
+	public static void removeActiveUser(String user) {
 		activeUserList.remove(user);
 	}
 	
 	public static ClientHandler getActiveClient(String user) {
 		return activeUserList.get(user);
 	}
-	//UserData class method
+	
+	public static void updateUnreadMessage(String userID, String conversationID) {
+		/*
+		 * I need to store the conversation ID in the User accounts unreadConversation list
+		 */
+		User offlineAccount = null;
+		for(User user : userData.values()) {
+			if(user.getUserID().equals(userID))
+			{
+				offlineAccount = user;
+			}
+		}
+		HashSet<String> unreadConversations = offlineAccount.getUnreadConversations();
+		unreadConversations.add(conversationID); //add the unread conversation ID to the account
+		/*
+		 * The unread message is stored in the Conversation Object.
+		 * The client has to use the unreadConversation set to see which
+		 * Conversation has an unread message.
+		 * An unread message is ALWAYS the most recent message.
+		 */
+	}
+	
+	
+	
+	public static void saveUserData(User user) {
+		//save the user data to disk with the FileManager
+		//fileHandler.saveUserData(User);
+	}
+	
+	public static void saveConversation(Conversation conversation) {
+		//save to conversation to disk using FileManger
+		//fileHandler.saveConversation(conversation);
+	}
+	
+	public static void saveLogQueue(String userID, ArrayList<Message> logQueue) {
+		//fileHandler.saveLogs(userID, logQueue);
+	}
+	
+	
+	/*** UserData class methods ***/
 	public static Conversation getConversation(String conversationID) {
 		return conversations.get(conversationID);
 	}
