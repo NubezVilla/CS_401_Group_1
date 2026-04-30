@@ -1,5 +1,6 @@
 package server;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,49 +18,20 @@ import model.User;
 public class Server {
 	private static int port = 54927;
 	private boolean isConnected;
-	//FileManager manager
-	//UserData userDataHandle
+	private static FileManager fileManagerHandle;
+	private static UserData userDataHandle;
 	private static ConcurrentHashMap<String, ClientHandler> activeUserList = new ConcurrentHashMap<>();//userID, Client
-	//UserData class object
-	private static ConcurrentHashMap<Integer, User> userData = new ConcurrentHashMap<>();//userHashcode, User account
-	//UserData class object
-	private static ConcurrentHashMap<String, Conversation> conversations = new ConcurrentHashMap<>();//conversationID, Conversation 	
-	
+
 	
 	public static void main(String[] args) throws Exception {
 		/* There has to be a lot of setup before the server can start listening.
 		 * The server needs to load all user files into the data structures inside UserData.
 		 */
-		//manager.loadConversations(conversations);
-		//manager.loadUserData(userData);
-		//
+		userDataHandle = new UserData();
+		fileManagerHandle = new FileManager();
+		//fileManagerHandle.loadData(userDataHandle);
 		
-		/*
-		 * I need to simulate existing accounts and conversations
-		 */
-		//make a Conversation so simulate sending conversations
-		Conversation conversation1 = new Conversation("user1", "user2");
-		Conversation conversation2 = new Conversation("user2", "user3");
-		Conversation conversation3 = new Conversation("user3", "user4");
-		Conversation conversation4 = new Conversation("user4", "user5");
-		Conversation conversation5 = new Conversation("user5", "user1");
-		conversations.put(conversation1.getID(), conversation1);
-		conversations.put(conversation2.getID(), conversation2);
-		conversations.put(conversation3.getID(), conversation3);
-		conversations.put(conversation4.getID(), conversation4);
-		conversations.put(conversation5.getID(), conversation5);
-		//add users to UserData to simulate existing users
-		User user1 = new User("user1", "pass1");
-		User user2 = new User("user2", "pass2");
-		User user3 = new User("user3", "pass3");
-		User user4 = new User("user4", "pass4");
-		User user5 = new User("user5", "pass5");
-		userData.put(user1.getLoginInfo().hashCode(), user1);
-		userData.put(user2.getLoginInfo().hashCode(), user2);
-		userData.put(user3.getLoginInfo().hashCode(), user3);
-		userData.put(user4.getLoginInfo().hashCode(), user4);
-		userData.put(user5.getLoginInfo().hashCode(), user5);
-		
+
 		
 		
 		try (var listener = new ServerSocket(port)) {
@@ -86,57 +58,54 @@ public class Server {
 		return activeUserList.get(user);
 	}
 	
-	public static void updateUnreadMessage(String userID, String conversationID) {
-		/*
-		 * I need to store the conversation ID in the User accounts unreadConversation list
-		 */
-		User offlineAccount = null;
-		for(User user : userData.values()) {
-			if(user.getUserID().equals(userID))
-			{
-				offlineAccount = user;
-			}
-		}
-		HashSet<String> unreadConversations = offlineAccount.getUnreadConversations();
-		unreadConversations.add(conversationID); //add the unread conversation ID to the account
-		/*
-		 * The unread message is stored in the Conversation Object.
-		 * The client has to use the unreadConversation set to see which
-		 * Conversation has an unread message.
-		 * An unread message is ALWAYS the most recent message.
-		 */
-	}
 	
-	
-	
+	/*** FileManager class methods ***/
 	public static void saveUserData(User user) {
 		//save the user data to disk with the FileManager
-		//fileHandler.saveUserData(User);
+		try {
+			fileManagerHandle.saveUser(user);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static void saveConversation(Conversation conversation) {
 		//save to conversation to disk using FileManger
-		//fileHandler.saveConversation(conversation);
+		try {
+			fileManagerHandle.saveConversation(conversation);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static void saveLogQueue(String userID, ArrayList<Message> logQueue) {
-		//fileHandler.saveLogs(userID, logQueue);
+		try {
+			fileManagerHandle.saveLogQueue(userID, logQueue);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
 	/*** UserData class methods ***/
-	public static Conversation getConversation(String conversationID) {
-		return conversations.get(conversationID);
+	public static User getUserData(int loginHashCode) {
+		return userDataHandle.getUserByLoginHash(loginHashCode);
 	}
 	
-	public static User getUserData(int hashCode) {
-		System.out.println("Passed in hashCode: " + hashCode);
-		return userData.get(hashCode);
+	public static User getUserbyID(User user) {
+		return userDataHandle.getUserById(user.getUserID());
 	}
 	
+	public static Conversation getActiveConversation(String activeConversationID) {
+		return userDataHandle.getConversation(activeConversationID);
+	}
 	
-	
-	
+	public static void updateUnreadMessage(String userID, String activeConversationID) {
+		userDataHandle.updateUnreadMessage(userID, activeConversationID);
+	}
 	
 	
 	

@@ -212,14 +212,14 @@ public class ClientHandler implements Runnable {
 			userAccount = Server.getUserData(loginInfo.hashCode());
 			if(userAccount != null) {
 				msg = new Message("LOGGING IN", "Server");
-		        Wrapper response = new Wrapper(msg, ResponseType.LOGIN_SUCCESS);
+		        Wrapper loginSuccessResponse = new Wrapper(msg, ResponseType.LOGIN_SUCCESS);
 		        isLoggedIn = true;
 		        accountFound = true;
 		        Server.registerActiveUser(userAccount.getUserID(), this);
 		        /** THEIR ACCOUNT MUST BE LOADED INTO THE HANDLER **/
 		        //userAccount = UserData.getUser();
 		        try {
-		            out.writeObject(response);
+		            out.writeObject(loginSuccessResponse);
 		            out.flush();
 		        } catch (IOException e) {
 		            e.printStackTrace();
@@ -312,8 +312,6 @@ public class ClientHandler implements Runnable {
 		        }
 				return;
 			}
-		//FileManager must be used to save files to disk
-		//fileManager.saveLogs(logQueue[]);
 		 try {
 			 //Save updated user profile
 			 Server.saveUserData(userAccount);
@@ -355,6 +353,10 @@ public class ClientHandler implements Runnable {
 		 * must be saved to file as well. This can be done here
 		 * or during logout?
 		 */
+		
+		
+		
+		
 		msg = new Message("REGISTERING NEW USER", "Server");
 		Wrapper objectToSend = new Wrapper(msg, RequestType.REGISTER);
 		try {
@@ -448,8 +450,92 @@ public class ClientHandler implements Runnable {
 		 * The UserID should be added to the participant list in the 
 		 * GroupConversation.
 		 */
+		// check that it is the correct payload
+		if (!(obj.getPayload() instanceof User)) {
+			msg = new Message("INVALID PAYLOAD: USER REQUIRED", "Server");
+			Wrapper response = new Wrapper(msg, ResponseType.ADD_PARTICIPANT_FAIL);
+			try {
+				out.writeObject(response);
+				out.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		//check to make sure that the conversation the correct conversation is active
+		if (activeConversationID == null) {
+			msg = new Message("NO ACTIVE CONVERSATION SELECTED", "Server");
+			Wrapper response = new Wrapper(msg, ResponseType.ADD_PARTICIPANT_FAIL);
+			try {
+				out.writeObject(response);
+				out.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		Conversation currentConversation = Server.getActiveConversation(activeConversationID);
+		if (currentConversation == null) {
+			msg = new Message("CONVERSATION NOT FOUND", "Server");
+			Wrapper response = new Wrapper(msg, ResponseType.ADD_PARTICIPANT_FAIL);
+			try {
+				out.writeObject(response);
+				out.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		User incomingUser = (User) obj.getPayload();
+		User userToAdd = Server.getUserbyID(incomingUser);
+
+		if (userToAdd == null) {
+			msg = new Message("USER NOT FOUND", "Server");
+			Wrapper response = new Wrapper(msg, ResponseType.ADD_PARTICIPANT_FAIL);
+			try {
+				out.writeObject(response);
+				out.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		String userToAddID = userToAdd.getUserID();
+
+		// Prevent duplicate participants
+		if (currentConversation.hasParticipant(userToAddID)) {
+			msg = new Message("USER IS ALREADY A PARTICIPANT", "Server");
+			Wrapper response = new Wrapper(msg, ResponseType.ADD_PARTICIPANT_FAIL);
+			try {
+				out.writeObject(response);
+				out.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		
+		// Add the user to the conversation
+		currentConversation.addParticipant(userToAddID);
+
+		// Update the canonical server-side User object
+		userToAdd.getConversations().add(activeConversationID);
+
+		// If the added user is online, send them the updated conversation
+		ClientHandler addedUserHandler = Server.getActiveClient(userToAddID);
+		if (addedUserHandler != null) {
+			try {
+				addedUserHandler.sendToClient(new Wrapper(currentConversation, ResponseType.SENDING_DATA));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		msg = new Message("ADDING PARTICIPANT", "Server");
-		Wrapper objectToSend = new Wrapper(msg, RequestType.ADD_PARTICIPANT);
+		Wrapper objectToSend = new Wrapper(msg, ResponseType.ADD_PARTICIPANT_SUCCESS);
 		try {
 			out.writeObject(objectToSend);
 			out.flush();
@@ -468,8 +554,88 @@ public class ClientHandler implements Runnable {
 		 * ClientList in the Server. The UserID should be removed
 		 * from the participant list in the GroupConversation.
 		 */
+		//the activeConversationID should be the group chat
+		//the object from socket should be a User
+		//check that the right payload was sent
+		User userToRemove = null;
+		if (!(obj.getPayload() instanceof User)) {
+	        msg = new Message("INVALID PAYLOAD: USER", "Server");
+	        Wrapper incorrectPayloadResponse = new Wrapper(msg, ResponseType.REMOVE_PARTICIPANT_FAIL);
+	        try {
+	            out.writeObject(incorrectPayloadResponse);
+	            out.flush();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	        return;
+		}
+		else {
+			userToRemove = (User) obj.getPayload();
+		}
+		//I know who must be removed now
+		//I need the conversation that they are part of to remove them
+		Conversation activeConversation = Server.getActiveConversation(activeConversationID);
+		
+		//I know which conversation they are part of
+		//I have to remove the from the participant list
+		//check that the conversation exists
+		if(activeConversation == null)
+		{
+			msg = new Message("CONVERSATION DNE", "Server");
+			Wrapper conversationDNE = new Wrapper(msg, ResponseType.REMOVE_PARTICIPANT_FAIL);
+			try {
+				out.writeObject(conversationDNE);
+				out.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		//get the user from the Existing data to update
+		User removingUser = Server.getUserbyID(userToRemove);
+		
+	    if (removingUser == null) {
+	        msg = new Message("USER NOT FOUND", "Server");
+	        Wrapper userNotFound = new Wrapper(msg, ResponseType.REMOVE_PARTICIPANT_FAIL);
+	        try {
+	            out.writeObject(userNotFound);
+	            out.flush();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	        return;
+	    }
+		
+	    String userToRemoveID = removingUser.getUserID();
+
+	    // Check that the user is actually in the conversation
+	    if (!activeConversation.hasParticipant(userToRemoveID)) {
+	        msg = new Message("USER NOT IN CONVERSATION", "Server");
+	        Wrapper notParticipant = new Wrapper(msg, ResponseType.REMOVE_PARTICIPANT_FAIL);
+	        try {
+	            out.writeObject(notParticipant);
+	            out.flush();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	        return;
+	    }
+	    
+	    //remove from the conversation
+	    //this should be holding a reference to the object in the Map
+	    //so it can change the contents inside the map
+	    activeConversation.removeParticipant(userToRemoveID);
+
+	    //remove the conversation from the user's conversation list
+	    removingUser.getConversations().remove(activeConversationID);
+
+	    //also remove from unread list if present
+	    removingUser.getUnreadConversations().remove(activeConversationID);
+	    
 		msg = new Message("REMOVING PARTICIPANT", "Server");
-		Wrapper objectToSend = new Wrapper(msg, RequestType.REMOVE_PARTICIPANT);
+		Wrapper objectToSend = new Wrapper(msg, ResponseType.REMOVE_PARTICIPANT_SUCCESS);
 		try {
 			out.writeObject(objectToSend);
 			out.flush();
@@ -525,7 +691,7 @@ public class ClientHandler implements Runnable {
 		 */
 		//first use conversationID to find the correct conversation
 		//a map in the Server currently holds all the conversations
-		Conversation currentConversation = Server.getConversation(activeConversationID);
+		Conversation currentConversation = Server.getActiveConversation(activeConversationID);
 	    if (currentConversation == null) {
             msg = new Message("CONVERSATION NOT FOUND", "Server");
             Wrapper response = new Wrapper(msg, ResponseType.MESSAGE_NOT_SENT);
@@ -566,7 +732,7 @@ public class ClientHandler implements Runnable {
           
 			//get their socket to write to
             try {
-				handler.sendToClient(new Wrapper(messageToSend, ResponseType.MESSAGE_SENT));
+				handler.sendToClient(new Wrapper(messageToSend, ResponseType.SENDING_MESSAGE));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -670,7 +836,7 @@ public class ClientHandler implements Runnable {
 		ArrayList<Conversation> conversationsToSend = new ArrayList<>();
 		for(String convoID : conversationIDs) {
 			//i need the conversation in UserData
-			conversationsToSend.add(Server.getConversation(convoID));
+			conversationsToSend.add(Server.getActiveConversation(convoID));
 		}
 		//send the Conversation data to the client
 		Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_DATA);
