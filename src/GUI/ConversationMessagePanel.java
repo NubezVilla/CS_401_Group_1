@@ -1,5 +1,6 @@
 package GUI;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 
@@ -18,7 +19,9 @@ public class ConversationMessagePanel extends JPanel {
 		client = c;
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		DataModel.getInstance().getCurrentConversationMessageList().addChangeListener(e -> {
-			add(new MessageDisplayComponent(DataModel.getInstance().getCurrentConversationMessageList().getNewestMessage(), client));
+			if (DataModel.getInstance().getCurrentConversationMessageList().getMessages().size() != 0) {
+				add(new MessageDisplayComponent(DataModel.getInstance().getCurrentConversationMessageList().getNewestMessage(), client));
+			}
 		});
 	}
 	
@@ -30,7 +33,6 @@ public class ConversationMessagePanel extends JPanel {
 		}
 		
 		for (Message m : DataModel.getInstance().getCurrentConversationMessageList().getMessages()) {
-			
 			add(new MessageDisplayComponent(m, client));
 		}
 		revalidate();

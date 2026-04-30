@@ -35,6 +35,9 @@ public class ConversationListCellRenderer extends JLabel implements ListCellRend
 				}
 			}
 		}
+		if(name.length() > 20) {
+			name = name.substring(0,  16) + "...";
+		}
 		//Icon making
 		char firstLetter = name.toUpperCase().charAt(0);
 		File iconFile;

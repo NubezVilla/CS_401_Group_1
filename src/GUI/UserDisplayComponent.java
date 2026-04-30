@@ -1,6 +1,9 @@
 package GUI;
 
+import java.awt.Color;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 
 import javax.swing.*;
@@ -32,13 +35,14 @@ public class UserDisplayComponent extends JPanel{
 		position = new JLabel();
 		id = new JLabel();
 		name.setFont(Fonts.header);
+		name.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
 		position.setFont(Fonts.display);
 		position.setVisible(!searchMode);
 		id.setFont(Fonts.error);
 		id.setVisible(searchMode);
 		info.add(name);
 		info.add(position);
-		info.setBorder(new EmptyBorder(0, 0, 0, 4));
+		id.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
 		add(pfp);
 		add(info);
 		add(id);
@@ -67,5 +71,22 @@ public class UserDisplayComponent extends JPanel{
 		setVals();
 	}
 	
+	public User getUser() {
+		return thisUser;
+	}
+	public void setOnClick(Runnable action) {
+	    MouseAdapter listener = new MouseAdapter() {
+	        @Override
+	        public void mousePressed(MouseEvent e) {
+	            action.run();
+	        }
+	    };
+
+	    this.addMouseListener(listener);
+	    name.addMouseListener(listener);
+	    position.addMouseListener(listener);
+	    id.addMouseListener(listener);
+	    pfp.addActionListener(e -> action.run());
+	}
 	
 }

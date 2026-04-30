@@ -26,15 +26,16 @@ import javax.swing.SwingUtilities;
 public class ConversationDisplayPanel extends JPanel {
 	private ConversationTopBar topBar;
 	private ConversationMessagePanel messages;
-	private JTextArea messageBox;
+	private HintTextArea messageBox;
 	private ClientCalls client;
+	private Runnable refreshMainPage;
 	
-	public ConversationDisplayPanel(ClientCalls client) {
+	public ConversationDisplayPanel(ClientCalls client, Runnable r) {
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
-		
+		refreshMainPage = r;
 		this.client = client;
-		topBar = new ConversationTopBar(client);
+		topBar = new ConversationTopBar(client, refreshMainPage);
 		messages =  new ConversationMessagePanel(client);
 		JPanel wrapper =  new JPanel(new BorderLayout());
 		wrapper.add(messages, BorderLayout.SOUTH);
@@ -50,10 +51,11 @@ public class ConversationDisplayPanel extends JPanel {
 		        });
 		    }
 		});
+		scroller.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 2, Color.black));
 		
 		messageBox = new HintTextArea("Enter your message");
 		messageBox.setLineWrap(true);
-		messageBox.setMargin(new Insets(4,4,4,4));
+		messageBox.setMargin(new Insets(8,8,8,8));
 		messageBox.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 		installMessageSending(messageBox);
 		
@@ -70,11 +72,14 @@ public class ConversationDisplayPanel extends JPanel {
 		c.weighty = 0.09;
 		add(messageBox, c);
 		
+		setBackground(new Color(255, 243, 176));
+		
 	}
 	
 	public void refresh() {
 		topBar.refresh();
 		messages.refresh();
+		messageBox.empty();
 	}
 	
 	private void installMessageSending(JTextArea messageField) {

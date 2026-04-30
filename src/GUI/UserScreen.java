@@ -23,6 +23,7 @@ public class UserScreen extends JPanel implements DisplayScreen{
 	JPanel conversationListPane;
 	JPanel conversationDisplayPane;
 	ConversationDisplayPanel conversationDisplay;
+	ConversationListPanel conversationList;
 	
 	public UserScreen(ScreenNavigator c, ClientCalls client) {
 		controller = c;
@@ -35,9 +36,11 @@ public class UserScreen extends JPanel implements DisplayScreen{
 		setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		
-		conversationListPane = buildConversationListPane();
+		conversationListPane = new JPanel(new BorderLayout());
+		conversationList = new ConversationListPanel(client, controller, () -> refreshConversationDisplayPane());
+		conversationListPane.add(conversationList, BorderLayout.CENTER);
 		conversationDisplayPane = new JPanel(new BorderLayout());
-		conversationDisplay = new ConversationDisplayPanel(client);
+		conversationDisplay = new ConversationDisplayPanel(client,() -> refreshConversationDisplayPane());
 		conversationDisplayPane.add(buildConversationDisplayPane(), BorderLayout.CENTER);
 		c.insets = new Insets(10,15,10,2);
 		c.gridy = 0;
@@ -54,52 +57,7 @@ public class UserScreen extends JPanel implements DisplayScreen{
 	}
 	
 	
-	private JPanel buildConversationListPane() {
-		JPanel pane = new JPanel(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.gridx = 0;
-		
-		JTextField userSearchBar = new HintTextField("Search for Users");
-		
-		JTextField convoSearchBar = new HintTextField("Search Conversations");
-		conversationSearchBarListners(convoSearchBar);
-		JList<Conversation> conversationList = new JList<Conversation>(DataModel.getInstance().getConversationList());
-		conversationList.setCellRenderer(new ConversationListCellRenderer(client));
-		conversationList.addListSelectionListener(e -> {
-			client.updateCurrentConversation(conversationList.getSelectedValue().getID());
-			refreshConversationDisplayPane();
-		});
-		
-		
-		JScrollPane listScroller = new JScrollPane(conversationList); 
-		
-		UserDisplayComponent profile = new UserDisplayComponent(null, false);
-		profile.setBorder(BorderFactory.createLineBorder(Color.black, 2));
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem account = new JMenuItem("Show Account Information");
-		account.addActionListener(f -> controller.show(Screen.Account));
-		popup.add(account);
-		profile.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				popup.show(profile, 0, -25);
-			}
-		});
-		
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weighty = 0.01;
-		pane.add(userSearchBar, c);
-		pane.add(convoSearchBar, c);
-		
-		c.fill = GridBagConstraints.BOTH;
-		c.weighty = 1.0;
-		pane.add(listScroller, c);
-		
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weighty = 0.01;
-		pane.add(profile,c);
-		return pane;
-	}
+	
 	
 	private JPanel buildConversationDisplayPane() {
 		JPanel pane = new JPanel(new GridBagLayout());
@@ -109,111 +67,29 @@ public class UserScreen extends JPanel implements DisplayScreen{
 		return pane;
 	}
 	
-	private String getOtherParticipantsName(Conversation c) {
-		String id = "";
-		for (String i : c.getParticipants()) {
-			if (!i.equals(DataModel.getInstance().getCurrentUser().getUserID())) {
-				id = i;
-			}
-		}
-		return client.getUserByID(id).getName();
-	}
+
 	
 	private void refreshConversationDisplayPane() {
-	    if (conversationDisplayPane.getComponent(0) == conversationDisplay) {
+		if (DataModel.getInstance().getCurrentConversation() == null) {
+			conversationDisplayPane.removeAll();
+			conversationDisplayPane.add(buildConversationDisplayPane(), BorderLayout.CENTER);
+		}
+		else if (conversationDisplayPane.getComponent(0) == conversationDisplay) {
 	    		conversationDisplay.refresh();
+	    		conversationList.updateSelectedConversation(DataModel.getInstance().getCurrentConversation());
 	    }
 	    else {
 	    		conversationDisplayPane.removeAll();
-	    		conversationDisplayPane.add(conversationDisplay);
+	    		conversationDisplayPane.add(conversationDisplay, BorderLayout.CENTER);
 	    		conversationDisplay.refresh();
+	    		conversationList.updateSelectedConversation(DataModel.getInstance().getCurrentConversation());
 	    }
+		conversationDisplayPane.revalidate();
+		conversationDisplayPane.repaint();
 	}
 	
-	private String parseConversationName(Conversation c) {
-		if (c.getClass() == GroupConversation.class) {
-			return ((GroupConversation) c).getName();
-		}
-		else {
-			return getOtherParticipantsName(c);
-		}
-	}
-	
-	private void conversationSearchBarListners(JTextField searchField) {
-		int delay = 1000;
-		int minChars = 3;
-
-		Timer debounceTimer = new Timer(delay, e -> {
-		    String text = searchField.getText();
-		    doConversationSearch(searchField, text);
-		});
-		debounceTimer.setRepeats(false);
-
-		searchField.getDocument().addDocumentListener(new DocumentListener() {
-		    private void handleChange() {
-		        String text = searchField.getText();
-		        if (text.length() >= minChars) {
-		            debounceTimer.restart();
-		        } else {
-		            debounceTimer.stop(); 
-		        }
-		    }
-
-		    @Override public void insertUpdate(DocumentEvent e) { handleChange(); }
-		    @Override public void removeUpdate(DocumentEvent e) { handleChange(); }
-		    @Override public void changedUpdate(DocumentEvent e) { handleChange(); }
-		});
-	}
-	
-	private void doConversationSearch(JTextField point, String term) {
-		JPopupMenu popup = new JPopupMenu();
-		popup.add(conversationSearcher(term, point, popup));
-		popup.show(point, point.getWidth(), point.getHeight());
-	}
-	
-	private JPanel conversationSearcher(String term, JTextField source, JPopupMenu menu) {
-		JPanel toReturn = new JPanel();
-		DefaultListModel<Conversation> conversationModel = new DefaultListModel<Conversation>(); 
-		for (int i = 0; i < DataModel.getInstance().getConversationList().getSize(); i++) {
-			if (parseConversationName(DataModel.getInstance().getConversationList().get(i)).contains(term)){
-				conversationModel.addElement(DataModel.getInstance().getConversationList().get(i));
-			}
-		}
-		if (conversationModel.getSize() == 0) {
-			JLabel feedback = new JLabel("No Matches Found");
-			feedback.setFont(Fonts.error);
-			toReturn.add(feedback);
-			toReturn.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-			return toReturn;
-		}
-		JList<Conversation> conversationList = new JList<Conversation>(conversationModel);
-		conversationList.setCellRenderer(new ConversationListCellRenderer(client));
-		conversationList.addListSelectionListener(e -> {
-			client.updateCurrentConversation(conversationList.getSelectedValue().getID());
-			refreshConversationDisplayPane();
-			menu.setVisible(false);
-			source.setText("");
-			source.grabFocus();
-			source.transferFocus();
-		});
-		
-		JScrollPane scroller = new JScrollPane(conversationList);
-		scroller.setPreferredSize(new Dimension(150, 250));
-		toReturn.add(scroller);
-		return toReturn;
-	}
-	
-
-
 	@Override
 	public void whenShown() {
-		Component[] components = conversationListPane.getComponents();
-		for (int i = 0; i < components.length; i++) {
-			if(components[i].getClass() == UserDisplayComponent.class) {
-				((UserDisplayComponent) components[i]).setUser(DataModel.getInstance().getCurrentUser());
-				break;
-			}
-		}
-		
+		conversationList.getProfile().setUser(DataModel.getInstance().getCurrentUser());
 	}
 }

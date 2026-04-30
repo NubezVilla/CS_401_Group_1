@@ -1,14 +1,18 @@
 package GUI;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -37,20 +41,26 @@ public class ActionBar extends JPanel {
 		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		add(changeUserInfo);
+		add(Box.createVerticalGlue());
 		add(createNewUser);
+		add(Box.createVerticalGlue());
 		add(userView);
+		add(Box.createVerticalGlue());
 		add(itView);
+		
+		this.setBorder(BorderFactory.createEmptyBorder(100, 70, 100, 0));
 	}
 	
 	private void doChangeUserInfo() {
 		JDialog searchPane = new JDialog((Frame)null, "Search For a User", true);
 		searchPane.setLayout(new FlowLayout());
 		searchPane.setLocationRelativeTo(changeUserInfo);
-		
+		searchPane.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		searchPane.add(new UserSearchBar(client, u -> {
 			JDialog userInfoPane = new JDialog((Frame)null, "Change User Info", true);
 			userInfoPane.setLayout(new GridBagLayout());
 			userInfoPane.setLocationRelativeTo(searchPane);
+			userInfoPane.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			GridBagConstraints c = new GridBagConstraints();
 			JLabel idLabel = new JLabel("User ID:");
 			JLabel nameLabel = new JLabel("Name:");
@@ -70,8 +80,17 @@ public class ActionBar extends JPanel {
 			});
 			JButton confirm = new JButton("Confirm");
 			confirm.addActionListener(e-> {
-				client.updateUser(u, nameField.getText(), positionField.getText(), usernameField.getText(), passwordField.getText());
-				userInfoPane.dispose();
+				if (client.updateUser(u, nameField.getText(), positionField.getText(), usernameField.getText(), passwordField.getText())) { 
+					JOptionPane.showMessageDialog(userInfoPane, "User Successfully Modified", "Modification Success", JOptionPane.INFORMATION_MESSAGE);
+					userInfoPane.dispose();
+				}
+				else {
+					JLabel badInfo = new JLabel("<html>Username and Password already taken."
+							+ "<br>Please try again with different login information.");
+					badInfo.setFont(Fonts.error);
+					badInfo.setForeground(Color.red);
+					JOptionPane.showMessageDialog(userInfoPane, badInfo, "Modification Failed", JOptionPane.ERROR_MESSAGE);
+				}
 			});
 			
 			c.gridx = 0;
@@ -118,6 +137,69 @@ public class ActionBar extends JPanel {
 		
 	}
 	private void doCreateNewUser() {
+		JDialog userInfoPane = new JDialog((Frame)null, "Change User Info", true);
+		userInfoPane.setLayout(new GridBagLayout());
+		userInfoPane.setLocationRelativeTo(createNewUser);
+		userInfoPane.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		GridBagConstraints c = new GridBagConstraints();
+		JLabel nameLabel = new JLabel("Name:");
+		JLabel positionLabel = new JLabel("Position:");
+		JLabel usernameLabel = new JLabel("Username:");
+		JLabel passwordLabel = new JLabel("Password:");
+		JTextField nameField = new HintTextField("Name (Optional)");
+		JTextField positionField = new HintTextField("Position (Optional)");
+		JTextField usernameField = new HintTextField("Username (Required)");
+		JTextField passwordField = new HintTextField("Password (Required)");
 		
+		JButton cancel = new JButton("Cancel");
+		cancel.addActionListener(e ->{
+			userInfoPane.dispose();
+		});
+		JButton confirm = new JButton("Confirm");
+		confirm.addActionListener(e-> {
+			if (client.createNewUser(nameField.getText(), positionField.getText(), usernameField.getText(), passwordField.getText())) {
+				JOptionPane.showMessageDialog(userInfoPane, "User Successfully Created", "Creation Success", JOptionPane.INFORMATION_MESSAGE);
+				userInfoPane.dispose();
+			}
+			else {
+				JLabel badInfo = new JLabel("<html>Username and Password already taken."
+						+ "<br>Please try again with different login information.");
+				badInfo.setFont(Fonts.error);
+				badInfo.setForeground(Color.red);
+				JOptionPane.showMessageDialog(userInfoPane, badInfo, "Creation Failed", JOptionPane.ERROR_MESSAGE);
+			}
+		});
+		
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 1;
+		c.gridheight = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		userInfoPane.add(nameLabel, c);
+		c.gridy = 1;
+		userInfoPane.add(positionLabel, c);
+		c.gridy = 2;
+		userInfoPane.add(usernameLabel, c);
+		c.gridy = 3;
+		userInfoPane.add(passwordLabel, c);
+		c.gridy = 4;
+		userInfoPane.add(cancel, c);
+		c.gridy = 0;
+		c.gridx = 1;
+		c.gridwidth = 2;
+		userInfoPane.add(nameField, c);
+		c.gridy = 1;
+		userInfoPane.add(positionField, c);
+		c.gridy = 2;
+		userInfoPane.add(usernameField, c);
+		c.gridy = 3;
+		userInfoPane.add(passwordField, c);
+		c.gridy = 4;
+		c.gridx = 2;
+		c.gridwidth = 1;
+		userInfoPane.add(confirm, c);
+		userInfoPane.pack();
+		userInfoPane.setSize(userInfoPane.getWidth() + 15, userInfoPane.getHeight() + 15);
+		userInfoPane.setVisible(true);
 	}
 }

@@ -44,14 +44,15 @@ public interface ClientCalls {
 	 */
 	public void fetchMessages(String id);
 	/**Takes the paramter text, makes it into a message, adds it to the current conversation,
-	 * then passes it to the server. 
+	 * then passes it to the server. Server is responsible for updating unreadConversation list. 
 	 * @param text to be sent
 	 */
 	public void sendMessage(String text);
 	
 	/** Updates target with the other four strings. 
-	 * Should update the user cache and
-	 * inform the server that it needs to do the same. 
+	 * Should inform the server of a change attempt first. 
+	 * Server may return fail if login info is already taken. 
+	 * On fail, return false and do nothing. On success, return true and update. 
 	 * <br>
 	 * Note that any of the strings may be blank, and any blank strings should be ignored. 
 	 * @param target user to update
@@ -59,6 +60,50 @@ public interface ClientCalls {
 	 * @param newPosition
 	 * @param newUsername
 	 * @param newPassword
+	 * @return false if the user's login info is already taken, true otherwise
 	 */
-	public void updateUser(User target, String newName, String newPosition, String newUsername, String newPassword);
+	public Boolean updateUser(User target, String newName, String newPosition, String newUsername, String newPassword);
+	
+	/**Requests the server to create a new user with the given information.
+	 * Server may return fail if login info is already taken. 
+	 * On fail, return false and do nothing. On success, return true and add the user to the local cache.
+	 */
+	public Boolean createNewUser(String name, String position, String username, String password);
+	
+	/**Requests the server to start a new conversation with the current user.
+	 * <br>
+	 * Should add the new conversation to the currentUser's conversation list. 
+	 * Server will add it to the other user's conversation list. 
+	 * @Return the newly created conversation. 
+	 * @param other user who is a part of the conversation
+	 */
+	public Conversation startNewConversation(User other);
+	
+	/**Requests the server to create a new conversation with 
+	 * the passed conversation as the base. Server should give the conversation some default name;
+	 * @param c the conversation to use as the base for constructing a new group conversation
+	 * @return the newly created group conversation
+	 */
+	public GroupConversation startNewGroupConversation(Conversation c);
+	
+	/**Tells the server it should add the passed user to the current conversation. 
+	 * Server should respond affirmatively, and local conversation should be updated too.
+	 * <br> 
+	 * Maybe should also add that user to the local cache
+	 * @param u user to be added
+	 */
+	public void addUserToGroupChat(User u);
+	
+	/**Tells the server it should remove the passed user from the current conversation. 
+	 * Server should respond affirmatively, and local conversation should be updated too.
+	 * @param u user to be removed
+	 */
+	public void removeUserFromGroupChat(User u);
+	
+	/**Sets the current conversation (guaranteed to be a group chat)'s name  
+	 * to the passed string. Tell the server to do the same blah blah 
+	 * @param name
+	 */
+	public void setGroupChatName(String name);
+		
 }
