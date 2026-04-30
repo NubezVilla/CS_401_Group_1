@@ -1,0 +1,4 @@
+userId,username,password,realName,position,isIT  
+U001,user1,pass1,Allison Ray,ProjectManager,false
+U002,user2,pass2,Avalina Rodriguez,softwareEngineer,false
+U003,admin,admin123,IT Admin,IT,true 
