@@ -50,8 +50,9 @@ public interface ClientCalls {
 	public void sendMessage(String text);
 	
 	/** Updates target with the other four strings. 
-	 * Should update the user cache and
-	 * inform the server that it needs to do the same. 
+	 * Should inform the server of a change attempt first. 
+	 * Server may return fail if login info is already taken. 
+	 * On fail, return false and do nothing. On success, return true and update. 
 	 * <br>
 	 * Note that any of the strings may be blank, and any blank strings should be ignored. 
 	 * @param target user to update
@@ -59,6 +60,14 @@ public interface ClientCalls {
 	 * @param newPosition
 	 * @param newUsername
 	 * @param newPassword
+	 * @return false if the user's login info is already taken, true otherwise
 	 */
-	public void updateUser(User target, String newName, String newPosition, String newUsername, String newPassword);
+	public Boolean updateUser(User target, String newName, String newPosition, String newUsername, String newPassword);
+	
+	/**Attempts to create a new user with the given information.
+	 * Should inform the server of a creation attempt first. 
+	 * Server may return fail if login info is already taken. 
+	 * On fail, return false and do nothing. On success, return true and create new User.
+	 */
+	public Boolean createNewUser(String name, String position, String username, String password);
 }

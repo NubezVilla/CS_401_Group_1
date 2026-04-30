@@ -42,9 +42,15 @@ public class ClientController implements ClientCalls {
 	}
 
 	@Override
-	public void updateUser(User target, String newName, String newPosition, String newUsername, String newPassword) {
+	public Boolean updateUser(User target, String newName, String newPosition, String newUsername, String newPassword) {
 		// TODO Auto-generated method stub
-		
+		return null;
+	}
+
+	@Override
+	public Boolean createNewUser(String name, String position, String username, String password) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }
