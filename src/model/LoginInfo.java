@@ -25,4 +25,11 @@ public class LoginInfo implements Serializable {
 	    return this.hashCode() == other.hashCode();
 	}
 
+	public String getUserName() {
+		return username;
+	}
+	
+	public String getPassword() {
+		return password;
+	}
 }

@@ -13,6 +13,11 @@ public interface ClientCalls {
 	 */
 	public boolean loginAttempt(String username, String password);
 	
+	/**Informs the server that the user is logging out, then closes the connection
+	 * and logs out the user. 
+	 */
+	public void logoutAttempt();
+	
 	
 	/**For a given ID, returns the User associated with it. 
 	 * 
@@ -69,6 +74,11 @@ public interface ClientCalls {
 	 * On fail, return false and do nothing. On success, return true and add the user to the local cache.
 	 */
 	public Boolean createNewUser(String name, String position, String username, String password);
+	
+	
+	/**Same as above, except for an IT user. 
+	 */
+	public Boolean creatNewITUser(String name, String position, String username, String password);
 	
 	/**Requests the server to start a new conversation with the current user.
 	 * <br>
