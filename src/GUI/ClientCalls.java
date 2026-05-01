@@ -78,7 +78,7 @@ public interface ClientCalls {
 	
 	/**Same as above, except for an IT user. 
 	 */
-	public Boolean creatNewITUser(String name, String position, String username, String password);
+	public Boolean createNewITUser(String name, String position, String username, String password);
 	
 	/**Requests the server to start a new conversation with the current user.
 	 * <br>
