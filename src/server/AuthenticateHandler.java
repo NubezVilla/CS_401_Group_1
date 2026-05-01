@@ -10,7 +10,6 @@ import java.util.HashSet;
 import model.Conversation;
 import model.LoginInfo;
 import model.Message;
-import model.RequestType;
 import model.ResponseType;
 import model.User;
 import model.Wrapper;
@@ -63,6 +62,8 @@ public class AuthenticateHandler {
          * Three write outs will happen. 
          * Send User account, Conversations, unread messages
          */
+        /*** HANDLE RESPONSE ***/
+        //here is where I would loop until the client gets a successful login
         sendUserData(userAccount);
         sendResponse(new Message("LOGGING IN", "Server"), ResponseType.LOGIN_SUCCESS);
         return true;
@@ -127,6 +128,8 @@ public class AuthenticateHandler {
 			//Remove from active users
 			if (userAccount != null) {
 				Server.removeActiveUser(userAccount.getUserID());
+				Broadcast broadcast = new Broadcast();
+				broadcast.broadcastLogout(userAccount);
 			}
 			isLoggedIn = false;
 			sendResponse(new Message("LOGOUT SUCCESSFUL", "Server"), ResponseType.LOGOUT_SUCCESS);

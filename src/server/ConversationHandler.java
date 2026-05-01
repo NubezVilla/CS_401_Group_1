@@ -42,17 +42,47 @@ public class ConversationHandler {
 		
 	}
 	
-	void handleGetConversation(ObjectOutputStream out, Wrapper obj) {
+	void handleGetConversation(Wrapper obj, String activeConversationID, boolean isIT) {
 		/* 
-		 * This method retrieves a conversation from a file. The conversationID
-		 * is used to look up the file and load the contents.
-		 */
-		
-		sendResponse(new Message("GETTING CONVERSATION", "Server"), ResponseType.CONVERSATION_SENT);
-		
+		 * This method gets a conversation from the conversations map in the server.
+		 * It checks to make sure that the user is an IT user first.
+		 * If they are not then return.
+		 * If they are then find the conversation they are looking for and 
+		 * send it to the client
+		 *  */
+		//if not IT, return
+		if(!isIT) {
+			sendResponse(new Message("UNAUTHORIZED USER", "Server"), ResponseType.CONVERSATION_NOT_SENT);
+			return;
+		}
+		// check that it is the correct payload
+		if (!(obj.getPayload() instanceof String)) {
+			sendResponse(new Message("INVALID PAYLOAD: STRING", "Server"), ResponseType.CONVERSATION_NOT_SENT);
+			return;
+		}
+		//get the conversationID from the payload
+		String conversationIDRequest = (String) obj.getPayload();
+		//find the conversation that needs to be sent
+		Conversation requestedConversation = Server.getActiveConversation(conversationIDRequest);
+		//make sure the conversation exists
+		if(requestedConversation == null)
+		{
+			sendResponse(new Message("CONVERSATION DOES NOT EXIST", "Server"), ResponseType.CONVERSATION_NOT_SENT);
+			return;
+		}
+		//send the Conversation to the IT user
+	    try {
+	    	Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.SENDING_DATA);
+	        out.writeObject(sendConversation);
+	        out.flush();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+		//send confirmation that everything was sent
+		sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
 	}
 	
-	void handleAddParticipant(Wrapper obj, String activeConversationID) {
+	void handleAddParticipant(Wrapper obj, String activeConversationID, String currentUserID) {
 		/* 
 		 * This method should add a User to a GroupConversation. The UserID and 
 		 * their ClientHandler are in the ClientList in the Server. 
@@ -109,11 +139,12 @@ public class ConversationHandler {
 			}
 		}
 		sendResponse(new Message("ADDING PARTICIPANT", "Server"), ResponseType.ADD_PARTICIPANT_SUCCESS);
-		
+		Broadcast broadcast = new Broadcast();
+		broadcast.broadcastParticipantAdded(activeConversationID, userToAdd, currentUserID);
 	}
 	
 	
-	void handleRemoveParticipant(Wrapper obj, String activeConversationID) {
+	void handleRemoveParticipant(Wrapper obj, String activeConversationID, String currentUserID) {
 		/* 
 		 * This method must remove a participant from a GroupConversation. 
 		 * The UserID and their ClientHandler are in the 
@@ -158,6 +189,8 @@ public class ConversationHandler {
             return;
         }
 	    
+	    Broadcast broadcast = new Broadcast();
+		broadcast.broadcastParticipantRemoved(activeConversationID, removingUser, currentUserID);
 	    //remove from the conversation
 	    //this should be holding a reference to the object in the Map
 	    //so it can change the contents inside the map

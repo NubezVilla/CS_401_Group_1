@@ -23,6 +23,7 @@ public class ClientHandler implements Runnable {
 	private ObjectInputStream in; 
 	//User Data
 	private boolean isLoggedIn = false;
+	private boolean isIT = false;
 	private User userAccount;
 	private Message msg;
 	private ArrayList<Message> logQueue;
@@ -31,6 +32,7 @@ public class ClientHandler implements Runnable {
 	AuthenticateHandler authenticateHandle;
 	MessageHandler messageHandle;
 	ConversationHandler conversationHandle; 
+	
 	
 	public ClientHandler(Socket socket) {
 		this.clientSocket = socket;
@@ -64,8 +66,10 @@ public class ClientHandler implements Runnable {
 			 * Login must be its own while loop. 
 			 * It must check for isLoggedIn and the type.
 			 */
-	        //make an AuthenticateHandler object
+	        //make the necessary handle objects
 	        authenticateHandle = new AuthenticateHandler(out, in);
+			messageHandle = new MessageHandler(out);
+	        conversationHandle = new ConversationHandler(out);
 			while(!isLoggedIn) {
 				
 				Wrapper expectedLoginRequest = (Wrapper) in.readObject();
@@ -74,13 +78,16 @@ public class ClientHandler implements Runnable {
 				//if credentials correct, get their account
 				if(isLoggedIn) {
 					this.userAccount = authenticateHandle.getUserAccount();
+					//check if the user is an IT user
+					isIT = userAccount.isIT();
 					Server.registerActiveUser(userAccount.getUserID(), this);
+					Broadcast broadcast = new Broadcast();
+					broadcast.broadcastLogin(userAccount);
 				}
 				
 			}
 			
-			//make the necessary handle objects
-			messageHandle = new MessageHandler(out);
+			
 			
 			/*** SHOULD ONLY EXECUTE AFTER LOGGING IN ***/
 			while(isLoggedIn) {
@@ -131,19 +138,19 @@ public class ClientHandler implements Runnable {
 			        //Alejandro
 			        case GET_CONVERSATION:
 			            System.out.println("Getting conversation");
-			            conversationHandle.handleGetConversation(out, receivedObject);
+			            conversationHandle.handleGetConversation(receivedObject, activeConversationID, isIT);
 			            break;
 		
 			        //Alejandro
 			        case ADD_PARTICIPANT:
 			            System.out.println("Adding participant");
-			            conversationHandle.handleAddParticipant(receivedObject, activeConversationID);
+			            conversationHandle.handleAddParticipant(receivedObject, activeConversationID, this.userAccount.getUserID());
 			            break;
 		
 			        //Alejandro
 			        case REMOVE_PARTICIPANT:
 			            System.out.println("Removing participant");
-			            conversationHandle.handleRemoveParticipant(receivedObject, activeConversationID);
+			            conversationHandle.handleRemoveParticipant(receivedObject, activeConversationID, this.userAccount.getUserID());
 			            break;
 		
 			        //Alejandro
