@@ -15,13 +15,14 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 public class MessageDisplayComponent extends JPanel {
-    private final Message message;
-    private final ClientCalls client;
-    private final boolean isOwnMessage;
+    private Message message;
+    private ClientCalls client;
+    private boolean isOwnMessage;
 
-    private final JPanel bubblePanel;
-    private final JButton actionButton;
-    private final JButton senderIcon;
+    private JPanel bubblePanel;
+    private JButton actionButton;
+    private JButton senderIcon;
+    private JPopupMenu senderProfile;
 
     public MessageDisplayComponent(Message message, ClientCalls client) {
         this.message = message;
@@ -35,6 +36,8 @@ public class MessageDisplayComponent extends JPanel {
         bubblePanel = buildBubble();
         actionButton = buildActionButton();
         senderIcon = buildSenderIcon();
+        senderProfile = new JPopupMenu();
+        senderProfile.add(new UserDisplayComponent(client.getUserByID(message.getSenderID()),false));
 
         JPanel row = new JPanel(new FlowLayout(isOwnMessage ? FlowLayout.RIGHT : FlowLayout.LEFT, 0, 0));
         row.setOpaque(false);
@@ -152,6 +155,12 @@ public class MessageDisplayComponent extends JPanel {
                     revalidate();
                     repaint();
                 }
+            }
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            		if(e.getButton() == MouseEvent.BUTTON3) {
+            			senderProfile.show(senderIcon, 0, -senderIcon.getHeight() - 10);
+            		}
             }
         };
 
