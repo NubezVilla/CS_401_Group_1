@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class LoginInfo implements Serializable {
 	private String username;
@@ -13,12 +14,15 @@ public class LoginInfo implements Serializable {
 	
 	@Override
 	public int hashCode() {
-		return (username.hashCode() * password.hashCode());
+		return Objects.hash(username, password);
 	}
 	
 	@Override
-	public boolean equals(Object other) {
-		return (this.hashCode() == other.hashCode());
+	public boolean equals(Object o) {
+		if (this == o) return true;
+	    if (!(o instanceof LoginInfo)) return false;
+	    LoginInfo other = (LoginInfo) o;
+	    return this.hashCode() == other.hashCode();
 	}
 
 }

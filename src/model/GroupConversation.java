@@ -10,6 +10,7 @@ public class GroupConversation extends Conversation {
 		for (String p : base.getParticipants()) {
 			this.addParticipant(p);
 		}
+		groupName = "NAMEUNSET";
 		this.creatorID = creatorID;
 	}
 	
@@ -18,6 +19,7 @@ public class GroupConversation extends Conversation {
 		for (String p : base.getParticipants()) {
 			this.addParticipant(p);
 		}
+		groupName = "NAMEUNSET";
 		this.creatorID = creatorID;
 	}
 	

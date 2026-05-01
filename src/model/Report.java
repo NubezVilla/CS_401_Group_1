@@ -14,6 +14,10 @@ public class Report extends Message {
 		resolved = false;
 	}
 	
+	public boolean isResolved() {
+		return resolved;
+	}
+	
 	public void resolve() {
 		resolved = !resolved;
 	}
