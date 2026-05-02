@@ -21,8 +21,15 @@ public class DataModel {
 	//Messages added to it
 	private MessageListModel currentConversationMessageList;
 	private Map<String, User> userCache;
+	
+	private User serverUser;
+	private Conversation reportsConversation;
+	private DefaultListModel<Conversation> logsList;
+	private Conversation currentLog;
+	private MessageListModel currentLogMessageList;
 
 	protected DataModel() {
+		logsList = new DefaultListModel<Conversation>();
 		conversationList = new DefaultListModel<Conversation>();
 		currentConversationMessageList = new MessageListModel();
 		userCache = new HashMap<>();
@@ -93,6 +100,29 @@ public class DataModel {
 		currentConversationMessageList.setMessages(conversationList.elementAt(index).getMessages());
 	}
 	
+	//DEBUG: Public for GUI Testing 
+	public void setCurrentLog(int index) {
+		currentLog = logsList.elementAt(index);
+		currentLogMessageList.setMessages(logsList.elementAt(index).getMessages());
+	}
+	
+	public DefaultListModel<Conversation> getLogsList(){
+		return logsList;
+	}
+	
+	//DEBUG: Public for GUI Testing
+	public void addLogToList(Conversation c) {
+		logsList.add(logsList.size(), c);
+	}
+	
+	public MessageListModel getCurrentLogMessageList() {
+		return currentLogMessageList;
+	}
+	
+	public Conversation getCurrentLog() {
+		return currentLog;
+	}
+	
 	public void emptyCurrentConversation() {
 		currentConversation = null;
 	}
@@ -106,6 +136,26 @@ public class DataModel {
 			userCache.putAll(DEBUGUserGenerator.generateUsers(1000));
 		}
 		
+	}
+	
+	public User getServerUser() {
+		return serverUser;
+	}
+	
+	//DEBUG: Public for GUI Testing
+	//Should be called once on login
+	public void setServerUser(User u) {
+		serverUser = u;
+	}
+	
+	public Conversation getReportsConversation() {
+		return reportsConversation;
+	}
+	
+	//DEBUG: Public for GUI Testing
+	//SHould be called once on login
+	public void setReportsConversation(Conversation c) {
+		reportsConversation = c;
 	}
 	
 }

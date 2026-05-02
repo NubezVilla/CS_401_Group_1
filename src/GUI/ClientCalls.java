@@ -115,5 +115,34 @@ public interface ClientCalls {
 	 * @param name
 	 */
 	public void setGroupChatName(String name);
+	
+	/**Asks the server for all conversation headers (conversation IDs and participants without messages)
+	 * that the passed User is a part of, then returns the list. 
+	 * @param u the user whose conversations should be returned
+	 * @return the list of all conversations that the user is a part of
+	 */
+	public ArrayList<Conversation> queryConversationLogsByUser(User u);
+	
+	
+	/**Asks the server for all conversation headers (conversation IDs and participants without messages)
+	 * whose IDs begin with the passed string
+	 * @param id to match against conversation logs
+	 * @return the list of all conversation headers whose IDs begin with the passed string
+	 */
+	public ArrayList<Conversation> queryConversationLogsByID(String id);
+	
+	/**Asks the server for the full conversation log (all info and messages) 
+	 * of the conversation with the passed id.
+	 * @param id of the conversation to find
+	 * @return the conversation log with the passed ID
+	 */
+	public Conversation requestConversationLogById(String id);
 		
+	/**updates the current log to the passed conversation log. 
+	 * Should put the conversation in the logs data structure first. 
+	 * <br>
+	 * Needs to use setCurrentLog since setCurrentConversation goes to the conversationList, which needs to point elsewhere. 
+	 * @param c conversation to be added to the logs list and made the current log
+	 */
+	public void updateCurrentLog(String id);
 }
