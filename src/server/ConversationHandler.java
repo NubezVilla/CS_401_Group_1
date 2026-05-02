@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import model.Conversation;
@@ -13,9 +14,13 @@ import model.Wrapper;
 public class ConversationHandler {
 
 	private ObjectOutputStream out;
+	private ObjectInputStream in;
+	private ResponseHandler responseHandle;
 	
-	public ConversationHandler (ObjectOutputStream out) {
+	public ConversationHandler (ObjectOutputStream out, ObjectInputStream in) {
 		this.out = out;
+		this.in = in;
+		this.responseHandle = new ResponseHandler(out, in);
 	}
 	
 	void handleCreateConversation(Wrapper obj) {
@@ -63,7 +68,7 @@ public class ConversationHandler {
 		//get the conversationID from the payload
 		String conversationIDRequest = (String) obj.getPayload();
 		//find the conversation that needs to be sent
-		Conversation requestedConversation = Server.getActiveConversation(conversationIDRequest);
+		Conversation requestedConversation = Server.getConversation(conversationIDRequest);
 		//make sure the conversation exists
 		if(requestedConversation == null)
 		{
@@ -71,12 +76,10 @@ public class ConversationHandler {
 			return;
 		}
 		//send the Conversation to the IT user
-	    try {
-	    	Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.SENDING_DATA);
-	        out.writeObject(sendConversation);
-	        out.flush();
-	    } catch (IOException e) {
-	        e.printStackTrace();
+		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.SENDING_DATA);
+		boolean conversationSent = responseHandle.sendWithRetry(sendConversation, ResponseType.DATA_RECEIVED);
+	    if(!conversationSent) {
+	    	sendResponse(new Message("CONVERATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
 	    }
 		//send confirmation that everything was sent
 		sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
@@ -100,7 +103,7 @@ public class ConversationHandler {
             return;
         }
 		
-		Conversation currentConversation = Server.getActiveConversation(activeConversationID);
+		Conversation currentConversation = Server.getConversation(activeConversationID);
 		if (currentConversation == null) {
             sendResponse(new Message("CONVERSATION NOT FOUND", "Server"), ResponseType.ADD_PARTICIPANT_FAIL);
             return;
@@ -163,7 +166,7 @@ public class ConversationHandler {
         }
 		//I know who must be removed now
 		//I need the conversation that they are part of to remove them
-		Conversation activeConversation = Server.getActiveConversation(activeConversationID);
+		Conversation activeConversation = Server.getConversation(activeConversationID);
 		
 		//I know which conversation they are part of
 		//I have to remove the from the participant list
