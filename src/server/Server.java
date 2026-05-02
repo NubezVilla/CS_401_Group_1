@@ -102,7 +102,7 @@ public class Server {
 		return userDataHandle.getUserById(user.getUserID());
 	}
 	
-	public static Conversation getActiveConversation(String activeConversationID) {
+	public static Conversation getConversation(String activeConversationID) {
 		return userDataHandle.getConversation(activeConversationID);
 	}
 	

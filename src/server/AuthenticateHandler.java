@@ -16,17 +16,19 @@ import model.Wrapper;
 
 public class AuthenticateHandler {
 
-    // Session state
+    
     private ObjectOutputStream out;
     private ObjectInputStream in;
     private boolean isLoggedIn;
     private User userAccount;
-
+    private ResponseHandler responseHandle;
+    
     public AuthenticateHandler(ObjectOutputStream out, ObjectInputStream in) {
         this.out = out;
         this.in = in;
         this.isLoggedIn = false;
         this.userAccount = null;
+        this.responseHandle = new ResponseHandler(out, in);
     }
 
     boolean handleLogin(Wrapper obj) {
@@ -53,18 +55,36 @@ public class AuthenticateHandler {
             sendResponse(new Message("WRONG USER/PASS", "Server"), ResponseType.LOGIN_FAIL);
             return isLoggedIn;
         }
+        
+        /*** HANDLE RESPONSE ***/
+        //here is where I would loop until the client gets a successful login
+        //send the user account first
+        Wrapper sendUserAccount = new Wrapper(userAccount, ResponseType.SENDING_DATA);
+        boolean userSent = responseHandle.sendWithRetry(sendUserAccount, ResponseType.DATA_RECEIVED);
+
+        if (!userSent) {
+            sendResponse(new Message("FAILED TO SEND USER DATA", "Server"), ResponseType.LOGIN_FAIL);
+            return false;
+        }
+
+        //send the conversation data second
+        ArrayList<Conversation> conversationsToSend = new ArrayList<>();
+        HashSet<String> conversationIDs = userAccount.getConversations();
+
+        for (String convoID : conversationIDs) {
+            conversationsToSend.add(Server.getConversation(convoID));
+        }
+
+        Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_DATA);
+        boolean conversationsSent = responseHandle.sendWithRetry(sendConversations, ResponseType.DATA_RECEIVED);
+
+        if (!conversationsSent) {
+            sendResponse(new Message("FAILED TO SEND CONVERSATION DATA", "Server"), ResponseType.LOGIN_FAIL);
+            return false;
+        }
 
         // Success
         isLoggedIn = true;
-        
-        /* 
-         * sendUserData needs to send the account information to the client.
-         * Three write outs will happen. 
-         * Send User account, Conversations, unread messages
-         */
-        /*** HANDLE RESPONSE ***/
-        //here is where I would loop until the client gets a successful login
-        sendUserData(userAccount);
         sendResponse(new Message("LOGGING IN", "Server"), ResponseType.LOGIN_SUCCESS);
         return true;
     }
@@ -137,6 +157,7 @@ public class AuthenticateHandler {
 		} catch (IOException e) {
 			e.printStackTrace();
 			sendResponse(new Message("ERROR SAVING LOGOUT DATA", "Server"), ResponseType.LOGOUT_FAIL);
+			return isLoggedIn;
 		}
 		return isLoggedIn;
     }
@@ -178,38 +199,4 @@ public class AuthenticateHandler {
     }
 
 
-
-    //this sends the User data and conversation data to the client
-	private void sendUserData(User userAccount) {
-		/*
-		 * I need to send the account information and conversation information to the 
-		 * client.
-		 * This will require two write outs
-		 */
-		//First, send the account information
-		Wrapper sendUserAccount = new Wrapper(userAccount, ResponseType.SENDING_DATA);
-		try {
-			out.writeObject(sendUserAccount);
-			out.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		//Next, i need to send a list of Conversations
-		//I need to know what Conversations they belong to
-		HashSet<String> conversationIDs = new HashSet<>();
-		conversationIDs = userAccount.getConversations();
-		ArrayList<Conversation> conversationsToSend = new ArrayList<>();
-		for(String convoID : conversationIDs) {
-			//i need the conversation in UserData
-			conversationsToSend.add(Server.getActiveConversation(convoID));
-		}
-		//send the Conversation data to the client
-		Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_DATA);
-		try {
-			out.writeObject(sendConversations);
-			out.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 }

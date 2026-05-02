@@ -78,7 +78,7 @@ public class MessageHandler {
 		 */
 		//first use conversationID to find the correct conversation
 		//a map in the Server currently holds all the conversations
-		Conversation currentConversation = Server.getActiveConversation(activeConversationID);
+		Conversation currentConversation = Server.getConversation(activeConversationID);
 	    if (currentConversation == null) {
 	    	sendResponse(new Message("CONVERSATION NOT FOUND", "Server"), ResponseType.MESSAGE_NOT_SENT);
             return;
@@ -121,8 +121,6 @@ public class MessageHandler {
 		sendResponse(new Message("MESSAGE SENT", "Server"), ResponseType.MESSAGE_SENT);
     	
 	}
-	
-	
 	
 	
     // Private helper to reduce repetitive try/catch blocks
