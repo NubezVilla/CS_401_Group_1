@@ -1,10 +1,18 @@
 package client;
 import java.util.ArrayList;
-
 import GUI.ClientCalls;
-import model.User;
+import client.Client.ClientRunner;
+import model.*;
 public class ClientController implements ClientCalls {
-
+	private final ClientRunner runner;
+	private User loggedUser;
+	private ConversationHandler convo;
+	
+	public ClientController(ClientRunner run) {
+		runner = run;
+	}
+	
+	
 	@Override
 	public boolean loginAttempt(String username, String password) {
 		// TODO Auto-generated method stub

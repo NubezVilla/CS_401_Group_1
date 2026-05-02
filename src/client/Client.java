@@ -8,6 +8,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class Client {
@@ -16,13 +18,18 @@ public class Client {
 	private static boolean isConnected = false;
 	private static int timeOut = 30;
 	private static ClientController client;
+	public static BlockingQueue<Wrapper> wrappedObjects;
+	
 	public static void main(String[] args) throws Exception {
 		// This is to establish a connection to the server first
 		try(Socket socket = new Socket(address, port)){
+			wrappedObjects = new LinkedBlockingQueue<>();
 			isConnected = !isConnected;
 			ClientListener listener = new ClientListener(socket, client);
 			new Thread(listener).start();
-			
+			ClientRunner runner = new ClientRunner(socket, wrappedObjects);
+			client = new ClientController(runner);
+			new Thread(runner).start();
 		}
 	}
 	
@@ -102,7 +109,54 @@ public class Client {
 	}
 	
 	
-	
+	public static class ClientRunner implements Runnable{
+		private final Socket clientSocket;
+		private final BlockingQueue<Wrapper> queue;
+		private OutputStream run;
+		private ObjectOutputStream objectRun;
+		
+		public ClientRunner(Socket sock, BlockingQueue<Wrapper> wrappedObjects) {
+			clientSocket = sock;
+			queue = wrappedObjects;
+			try {
+				run = clientSocket.getOutputStream();
+				objectRun = new ObjectOutputStream(run);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			try {
+				while(true) {		//Change true to a value that would go false when the server sends a successfull logout message
+					Wrapper object = null;
+						object = queue.take();
+						objectRun.writeObject(object);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try { objectRun.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		public void send(Object thisObject, RequestType ID) {
+			Wrapper newData = new Wrapper(thisObject, ID);
+			try {
+				queue.put(newData);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
 	
 	
 	
