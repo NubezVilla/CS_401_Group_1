@@ -30,6 +30,7 @@ public class DataModel {
 
 	protected DataModel() {
 		logsList = new DefaultListModel<Conversation>();
+		currentLogMessageList = new MessageListModel();
 		conversationList = new DefaultListModel<Conversation>();
 		currentConversationMessageList = new MessageListModel();
 		userCache = new HashMap<>();
