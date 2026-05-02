@@ -69,7 +69,7 @@ public class ClientHandler implements Runnable {
 	        //make the necessary handle objects
 	        authenticateHandle = new AuthenticateHandler(out, in);
 			messageHandle = new MessageHandler(out);
-	        conversationHandle = new ConversationHandler(out);
+	        conversationHandle = new ConversationHandler(out, in);
 			while(!isLoggedIn) {
 				
 				Wrapper expectedLoginRequest = (Wrapper) in.readObject();

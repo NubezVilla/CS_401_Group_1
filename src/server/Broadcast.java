@@ -74,7 +74,7 @@ public class Broadcast {
     }
     
     private void sendToConversationParticipantsExcept(String conversationID, Wrapper wrapper, String excludedUserID) {
-        Conversation conversation = Server.getActiveConversation(conversationID);
+        Conversation conversation = Server.getConversation(conversationID);
 
         if (conversation == null) {
             return;
