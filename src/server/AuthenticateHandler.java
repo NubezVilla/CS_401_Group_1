@@ -72,7 +72,11 @@ public class AuthenticateHandler {
         HashSet<String> conversationIDs = userAccount.getConversations();
 
         for (String convoID : conversationIDs) {
-            conversationsToSend.add(Server.getConversation(convoID));
+        	Conversation conversationToAdd = Server.getConversation(convoID);
+        	if(conversationToAdd != null) {
+        		conversationsToSend.add(conversationToAdd);
+        	}
+            
         }
 
         Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_DATA);
@@ -80,13 +84,13 @@ public class AuthenticateHandler {
 
         if (!conversationsSent) {
             sendResponse(new Message("FAILED TO SEND CONVERSATION DATA", "Server"), ResponseType.LOGIN_FAIL);
-            return false;
+            return isLoggedIn;
         }
 
         // Success
         isLoggedIn = true;
         sendResponse(new Message("LOGGING IN", "Server"), ResponseType.LOGIN_SUCCESS);
-        return true;
+        return isLoggedIn;
     }
 
 	

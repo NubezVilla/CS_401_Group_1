@@ -79,7 +79,8 @@ public class ConversationHandler {
 		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.SENDING_DATA);
 		boolean conversationSent = responseHandle.sendWithRetry(sendConversation, ResponseType.DATA_RECEIVED);
 	    if(!conversationSent) {
-	    	sendResponse(new Message("CONVERATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
+	    	sendResponse(new Message("CONVERSATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
+	    	return;
 	    }
 		//send confirmation that everything was sent
 		sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
