@@ -111,10 +111,8 @@ public class DataModel {
 	
 	private void conversationListSort() {
 		Conversation last = conversationList.get(conversationList.size() - 1);
-		System.out.println("Being called!!");
 		for (int i = conversationList.size() - 2; i >= 0; i--) {
 			if (last.getMostRecentMessageTimestamp().isAfter(conversationList.get(i).getMostRecentMessageTimestamp())) {
-				System.out.println(last.getMostRecentMessageTimestamp());
 				conversationList.set(i+1, conversationList.get(i));
 				conversationList.set(i, last);
 			}
