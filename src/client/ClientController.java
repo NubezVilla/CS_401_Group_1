@@ -48,8 +48,7 @@ public class ClientController implements ClientCalls {
             case REMOVE_PARTICIPANT_SUCCESS:
             case REMOVE_PARTICIPANT_FAIL:
             case GROUP_NAME_CHANGED:
-            case CONVERSATIONS_FOUND:
-            case CONVERSATION_LOG_RECEIVED:
+           // case CONVERSATIONS_FOUND:
             case ACTIVE_CONVERSATION_UPDATED:
                 deliverResponse(data);
                 break;
@@ -258,31 +257,31 @@ public class ClientController implements ClientCalls {
 
     @Override
     public ArrayList<Conversation> queryConversationLogsByUser(User u) {
-        Wrapper resp = sendAndWait(u, RequestType.FIND_CONVERSATION_BY_USER);
-        if (resp == null) return new ArrayList<>();
-        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
-            @SuppressWarnings("unchecked")
-            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
-            return result;
-        }
+//        Wrapper resp = sendAndWait(u, RequestType.FIND_CONVERSATION_BY_USER);
+//        if (resp == null) return new ArrayList<>();
+//        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
+//            @SuppressWarnings("unchecked")
+//            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
+//            return result;
+//        }
         return new ArrayList<>();
     }
 
     @Override
     public ArrayList<Conversation> queryConversationLogsByID(String id) {
-        Wrapper resp = sendAndWait(id, RequestType.FIND_CONVERSATION_BY_ID);
-        if (resp == null) return new ArrayList<>();
-        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
-            @SuppressWarnings("unchecked")
-            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
-            return result;
-        }
+//        Wrapper resp = sendAndWait(id, RequestType.FIND_CONVERSATION_BY_ID);
+//        if (resp == null) return new ArrayList<>();
+//        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
+//            @SuppressWarnings("unchecked")
+//            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
+//            return result;
+//        }
         return new ArrayList<>();
     }
 
     @Override
     public Conversation requestConversationLogById(String id) {
-        Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION_LOG);
+        Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
         if (resp == null) return null;
         if (resp.getResponseType() == ResponseType.CONVERSATION_SENT) {
             return (Conversation) resp.getPayload();
