@@ -17,8 +17,6 @@ public class DataModel {
 	//These have to be ListModels because they need to ping the GUI to update when they get updated
 	//List Models need to be updated on the EDT, either talk to me or look up how that has to be handled. 
 	private DefaultListModel<Conversation> conversationList;
-	//Something in logic should make sure this is updated whenever the currentConversation gets
-	//Messages added to it
 	private MessageListModel currentConversationMessageList;
 	private Map<String, User> userCache;
 	
@@ -47,6 +45,18 @@ public class DataModel {
 	
 	public DefaultListModel<Conversation> getConversationList(){
 		return conversationList;
+	}
+	
+	//Public for GUI Testing
+	public void addMessageToCurrent(Message m) {
+		currentConversationMessageList.addMessage(m);
+		addMessageToConversation(currentConversation, m);
+	}
+	
+	public void addMessageToConversation(Conversation c, Message m) {
+		int index = conversationList.indexOf(c);
+		conversationList.get(index).addMessage(m);
+		conversationListSort();
 	}
 	
 	public MessageListModel getCurrentConversationMessageList(){
@@ -85,15 +95,27 @@ public class DataModel {
 		b.addMessage(new Message("Aint I a stinker", other2.getUserID()));
 		c.addMessage(new Message("Hello There", currentUser.getUserID()));
 		c.addMessage(new Message("General Kenobi", other3.getUserID()));
-		conversationList.add(0, a);
-		conversationList.add(1, b);
-		conversationList.add(2, c);
-		conversationList.add(3, d);
+		addConversationToList(a);
+		addConversationToList(b);
+		addConversationToList(c);
+		addConversationToList(d);
 		
 	}
 	//DEBUG: Public for GUI Testing
 	public void addConversationToList(Conversation c) {
 		conversationList.add(conversationList.size(), c);
+		conversationListSort();
+	}
+	
+	private void conversationListSort() {
+		Conversation last = conversationList.get(conversationList.size() - 1);
+		for (int i = conversationList.size() - 2; i >= 0; i--) {
+			if (last.getMostRecentMessageTimestamp().isAfter(conversationList.get(i).getMostRecentMessageTimestamp())) {
+				conversationList.set(i+1, conversationList.get(i));
+				conversationList.set(i, last);
+			}
+			last = conversationList.get(i);
+		}
 	}
 	//DEBUG: Public for GUI Testing 
 	public void setCurrentConversation(int index) {

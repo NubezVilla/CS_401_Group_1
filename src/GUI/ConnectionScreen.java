@@ -60,6 +60,9 @@ public class ConnectionScreen extends JDialog{
 		            if (ip == "Home") {
 		            		ip = "PLACEHOLDER";
 		            }
+		            if (ip == "Coffee Shop") {
+		            		ip = "172.16.102.178";
+		            }
 		            return c.connectionAttempt(ip);
 		        }
 
@@ -87,12 +90,13 @@ public class ConnectionScreen extends JDialog{
 			else {
 				connect.setEnabled(false);
 			}
-			if (selection.getSelectedIndex() == 2) {
+			if (selection.getSelectedIndex() == selection.getItemCount()-1) {
 				selection.setSelectedItem("");
 			}
 		});
 		selection.addItem("School");
 		selection.addItem("Home");
+		selection.addItem("Coffee Shop");
 		selection.addItem("Custom (enter address)");
 		selection.setEditable(true);
 		

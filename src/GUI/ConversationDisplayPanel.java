@@ -94,6 +94,7 @@ public class ConversationDisplayPanel extends JPanel {
 		        String text = messageField.getText().trim();
 		        if (!text.isEmpty()) {
 		            client.sendMessage(text);
+		            refreshMainPage.run();
 		            messageField.setText("");
 		        }
 		    }
