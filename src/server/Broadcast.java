@@ -101,6 +101,31 @@ public class Broadcast {
                 e.printStackTrace();
             }
         }
-    }
+    } 
+    // Notifies all online participants that a new conversation was created.
+    // The creator is skipped because they already initiated the action.  
+    public void broadcastNewConversation(Conversation conversation, String creatorID) {
+        Wrapper wrapper = new Wrapper(conversation, ResponseType.SENDING_DATA);
+
+        for (String userID : conversation.getParticipants()) {
+            // Skip the user who created the conversation
+            if (userID.equals(creatorID)) {
+                continue;
+            }
+
+            ClientHandler handler = Server.getActiveClient(userID);
+
+            // Only send to online users
+            if (handler == null) {
+                continue;
+            }
+
+            try {
+                handler.sendToClient(wrapper);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    } 
 }
 

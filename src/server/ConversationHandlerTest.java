@@ -36,16 +36,14 @@ public class ConversationHandlerTest {
 
         conversationHandler = new ConversationHandler(out, in);
         
-        // Create users to test
         testUserToModify = new User("newGuy", "password123"); 
         testHostUser = new User("host", "password123");
 
-        // Create a conversation and add the host to it to test
         activeConversation = new Conversation();
         activeConversation.addParticipant(testHostUser.getUserID());
         testHostUser.getConversations().add(activeConversation.getID());
 
-        // Create the fake database and populate it to test
+        //create a mock database for testing
         UserData mockDatabase = new UserData();
         mockDatabase.addUser(testUserToModify);
         mockDatabase.addUser(testHostUser);
@@ -129,4 +127,69 @@ public class ConversationHandlerTest {
         //test that the participant size did not change because user DNE in conversation
         assertEquals(size, activeConversation.getParticipants().size(), "Participant list size should not change if user wasn't in it.");
     }
+    
+    /*** TESTING GETTING CONVERSATIONS ***/
+
+    @Test
+    public void testHandleGetConversation_NotIT_Fails() {
+        //make the right payload
+        Wrapper request = new Wrapper(activeConversation.getID(), RequestType.GET_CONVERSATION);
+        boolean isIT = false;
+        
+        assertDoesNotThrow(() -> {
+            conversationHandler.handleGetConversation(request, activeConversation.getID(), isIT);
+        }, "Should safely abort and send UNAUTHORIZED message without exceptions.");
+    }
+
+    @Test
+    public void testHandleGetConversation_InvalidPayload_Fails() {
+        //send the wrong data type
+        Wrapper badRequest = new Wrapper(12345, RequestType.GET_CONVERSATION);
+        boolean isIT = true;
+        
+        assertDoesNotThrow(() -> {
+            conversationHandler.handleGetConversation(badRequest, activeConversation.getID(), isIT);
+        }, "Should safely abort and send INVALID PAYLOAD message without exceptions.");
+    }
+
+    @Test
+    public void testHandleGetConversation_NotFound_Fails() {
+        //send conversationID that does not exist
+        Wrapper badRequest = new Wrapper("999999", RequestType.GET_CONVERSATION);
+        boolean isIT = true;
+        
+        assertDoesNotThrow(() -> {
+            conversationHandler.handleGetConversation(badRequest, activeConversation.getID(), isIT);
+        }, "Should safely abort and send DOES NOT EXIST message without exceptions.");
+    }
+
+    @Test
+    public void testHandleGetConversation_Success() throws IOException {
+        //send the right data
+        //this will require making mock input stream
+    	//see setUp to set the input stream up
+    	ByteArrayOutputStream prepBaos = new ByteArrayOutputStream();
+        ObjectOutputStream prepOos = new ObjectOutputStream(prepBaos);
+        
+        //send the right data
+        Wrapper clientAck = new Wrapper(new Message("GOT IT", "Client"), ResponseType.DATA_RECEIVED);
+        prepOos.writeObject(clientAck);
+        prepOos.flush();
+
+        //simulate sending the data out of the socket
+        ByteArrayInputStream bais = new ByteArrayInputStream(prepBaos.toByteArray());
+        ObjectInputStream loadedMockIn = new ObjectInputStream(bais);
+        ConversationHandler customHandler = new ConversationHandler(out, loadedMockIn);
+
+        //send the request
+        Wrapper request = new Wrapper(activeConversation.getID(), RequestType.GET_CONVERSATION);
+        boolean isIT = true;
+
+        assertDoesNotThrow(() -> {
+            customHandler.handleGetConversation(request, activeConversation.getID(), isIT);
+        }, "Handler should successfully send conversation and read the ACK without throwing exceptions.");
+    }
+    
+    
+    
 }
