@@ -45,7 +45,7 @@ public class MessageHandler {
 		    ArrayList<Message> messages = conversation.getMessages();
 
 		    try {
-		        Wrapper response = new Wrapper(messages, ResponseType.SENDING_MESSAGE_DATA);
+		        Wrapper response = new Wrapper(messages, ResponseType.SENDING_MESSAGE);
 		        out.writeObject(response);
 		        out.flush();
 		    } catch (IOException e) {
@@ -80,7 +80,7 @@ public class MessageHandler {
 	    ArrayList<Message> messages = conversation.getMessages();
 
 	    try {
-	        Wrapper response = new Wrapper(messages, ResponseType.SENDING_MESSAGE_DATA);
+	        Wrapper response = new Wrapper(messages, ResponseType.SENDING_MESSAGE);
 	        out.writeObject(response);
 	        out.flush();
 	    } catch (IOException e) {
