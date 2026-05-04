@@ -32,7 +32,6 @@ public class Client {
 	    Thread runnerThread = new Thread(runner, "ClientRunner");
 	    listenerThread.start();
 	    runnerThread.start();
-	    System.out.println("Yo?");
 	    MainWindow m = new MainWindow(client);
 	    m.startup();
 	    listenerThread.join();
