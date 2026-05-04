@@ -4,6 +4,15 @@ import java.util.ArrayList;
 import model.*;
 
 public interface ClientCalls {
+	
+	/**Takes the passed ip string and attempts to connect to the server on that address.
+	 * 
+	 * @param ip the IP address to look for the server on
+	 * @return true if the connection succeeded, false if it did not
+	 */
+	
+	public boolean connectionAttempt(String ip); 
+	
 	/**Passes a un and pw to the client for a login attempt
 	 * <p>
 	 * If the login is successful, the data model should have a current user before this returns.
@@ -14,7 +23,7 @@ public interface ClientCalls {
 	public boolean loginAttempt(String username, String password);// DONE
 	
 	/**Informs the server that the user is logging out, then closes the connection
-	 * and logs out the user. 
+	 * and logs out the user. Should send the server a copy of the current user for sync. 
 	 */
 	public void logoutAttempt();//Should be similar to Login
 	

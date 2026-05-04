@@ -40,7 +40,8 @@ public class HintTextArea extends JTextArea implements FocusListener{
 	}
 	
 	public void empty() {
-		showingHint = true;
-		super.setText(hint);
+		super.setText("");
+		transferFocus();
+		grabFocus();
 	}
 }

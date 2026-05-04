@@ -17,7 +17,7 @@
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
 |    03/05/2026       |        1.0         |              Proofreading and copyediting                                          |      Jack Merrell            |
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
-|                     |                    |                                                                                    |                              |
+|  3/30/2026          |        1.1         |               Updating some outdated requirements                                  |       Jack Merrell           |
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
 |                     |                    |                                                                                    |                              |
 +---------------------+--------------------+------------------------------------------------------------------------------------+------------------------------+
@@ -125,7 +125,7 @@ Table of Contents
 				3.1.2.4. If the client is not connected to the server within 30 seconds, the client will continue to attempt to establish connection with the server, however the client will display a notification to the user indicating poor connection.
 				3.1.2.5. The client application should request a set size array of message classes from a specific conversation as needed from the server based on user actions. 
 				3.1.2.6. Regular users should be able to:
-					3.1.2.6.1. Find any other registered users via name, username, or Id
+					3.1.2.6.1. Find any other registered users via name, or Id
 					3.1.2.6.2. Start a conversation with and send messages to any other user
 					3.1.2.6.3. Receive messages from any other user
 					3.1.2.6.4. View all conversations had and the messages therein
@@ -150,7 +150,7 @@ Table of Contents
 				3.1.4.1. The GUI should open to the login screen, and not allow a user to do anything else until they login successfully
 				3.1.4.2. The GUI should allow users to view all conversations they are a part of, and all messages in those conversations. 
 				3.1.4.3. The GUI should display messages in chronological order based on timestamp.
-				3.1.4.4. The GUI should provide a search bar to find other users, and should match based on username, name, and/or ID.
+				3.1.4.4. The GUI should provide a search bar to find other users, and should match based on name and/or ID.
 				3.1.4.5. The GUI must present input text from the user as the user is typing it.
 				3.1.4.6. The GUI should allow users to see information about other users 
 				3.1.4.7. The GUI should allow users to report messages and those reports should be sent to an IT User

@@ -1,7 +1,11 @@
 package GUI;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.CardLayout;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
 
 public class MainWindow extends JFrame {
 	private JPanel contentPane;
@@ -15,6 +19,14 @@ public class MainWindow extends JFrame {
 		controller =  new ScreenNavigator(layout, contentPane);
 		contentPane.setLayout(layout);
 		this.setTitle("Hyve");
+		Image icon;
+		try {
+			icon = ImageIO.read(new File("resources/icon/honeycombicon.png"));
+			setIconImage(icon);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		intializeScreens(c);
 		
 	}

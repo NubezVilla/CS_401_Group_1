@@ -18,7 +18,7 @@ public class Conversation implements Serializable {
 		createdAt = Instant.now();
 		participantIDs = new HashSet<String>();
 		messages = new ArrayList<Message>();
-		mostRecentMessage = null;
+		mostRecentMessage = createdAt;
 	}
 	//pass both members of the conversation
 	public Conversation(String p1, String p2) {
@@ -28,7 +28,7 @@ public class Conversation implements Serializable {
 		participantIDs.add(p1);
 		participantIDs.add(p2);
 		messages = new ArrayList<Message>();
-		mostRecentMessage = null;
+		mostRecentMessage = createdAt;
 	}
 	//Constructor for rebuilding conversations 
 	public Conversation(Instant i) {
@@ -36,7 +36,7 @@ public class Conversation implements Serializable {
 		createdAt = i;
 		participantIDs = new HashSet<String>();
 		messages = new ArrayList<Message>();
-		mostRecentMessage = null;
+		mostRecentMessage = createdAt;
 	}
 
 	public String getID() {
