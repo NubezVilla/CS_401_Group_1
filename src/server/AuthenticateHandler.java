@@ -59,7 +59,7 @@ public class AuthenticateHandler {
         /*** HANDLE RESPONSE ***/
         //here is where I would loop until the client gets a successful login
         //send the user account first
-        Wrapper sendUserAccount = new Wrapper(userAccount, ResponseType.SENDING_DATA);
+        Wrapper sendUserAccount = new Wrapper(userAccount, ResponseType.SENDING_USER_DATA);
         boolean userSent = responseHandle.sendWithRetry(sendUserAccount, ResponseType.DATA_RECEIVED);
 
         if (!userSent) {
@@ -79,7 +79,7 @@ public class AuthenticateHandler {
             
         }
 
-        Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_DATA);
+        Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_CONVERSATION_DATA);
         boolean conversationsSent = responseHandle.sendWithRetry(sendConversations, ResponseType.DATA_RECEIVED);
 
         if (!conversationsSent) {

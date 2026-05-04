@@ -105,7 +105,7 @@ public class Broadcast {
     // Notifies all online participants that a new conversation was created.
     // The creator is skipped because they already initiated the action.  
     public void broadcastNewConversation(Conversation conversation, String creatorID) {
-        Wrapper wrapper = new Wrapper(conversation, ResponseType.SENDING_DATA);
+        Wrapper wrapper = new Wrapper(conversation, ResponseType.SENDING_CONVERSATION_DATA);
 
         for (String userID : conversation.getParticipants()) {
             // Skip the user who created the conversation
