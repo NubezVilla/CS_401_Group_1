@@ -58,6 +58,9 @@ public class Server {
 		return activeUserList.get(user);
 	}
 	
+	public static ConcurrentHashMap<String, ClientHandler> getActiveUserList() {
+	    return activeUserList;
+	}
 	
 	/*** FileManager class methods ***/
 	public static void saveUserData(User user) {
@@ -99,7 +102,7 @@ public class Server {
 		return userDataHandle.getUserById(user.getUserID());
 	}
 	
-	public static Conversation getActiveConversation(String activeConversationID) {
+	public static Conversation getConversation(String activeConversationID) {
 		return userDataHandle.getConversation(activeConversationID);
 	}
 	
@@ -107,11 +110,18 @@ public class Server {
 		userDataHandle.updateUnreadMessage(userID, activeConversationID);
 	}
 	
+
+	/*** 
+	 * TEST HELPER METHODS 
+	 * These are for JUnit testing. 
+	 * ***/
+	public static void setTestUserData(UserData testData) {
+		userDataHandle = testData;
+	}
 	
-	
-	
-	
-	
+	public static void setTestFileManager(FileManager testManager) {
+		fileManagerHandle = testManager;
+	}
 	
 	
 }
