@@ -28,9 +28,6 @@ public class ConversationMessagePanel extends JPanel {
 	public void refresh() {
 		removeAll();
 		add(Box.createVerticalGlue());
-		if (DataModel.getInstance().getCurrentConversationMessageList().getMessages().size() < 200) {
-			client.fetchMessages(DataModel.getInstance().getCurrentConversation().getID());
-		}
 		
 		for (Message m : DataModel.getInstance().getCurrentConversationMessageList().getMessages()) {
 			add(new MessageDisplayComponent(m, client));
