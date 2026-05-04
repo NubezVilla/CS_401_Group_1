@@ -59,13 +59,15 @@ public class AuthenticateHandler {
         /*** HANDLE RESPONSE ***/
         //here is where I would loop until the client gets a successful login
         //send the user account first
-        Wrapper sendUserAccount = new Wrapper(userAccount, ResponseType.SENDING_DATA);
-        boolean userSent = responseHandle.sendWithRetry(sendUserAccount, ResponseType.DATA_RECEIVED);
+        Wrapper sendUserAccount = new Wrapper(userAccount, ResponseType.LOGIN_SUCCESS);
+        //send the user account and a LOGIN_SUCCESS
+        sendPayload(sendUserAccount);
+        //boolean userSent = responseHandle.sendWithRetry(sendUserAccount, ResponseType.DATA_RECEIVED);
 
-        if (!userSent) {
+        /*if (!userSent) {
             sendResponse(new Message("FAILED TO SEND USER DATA", "Server"), ResponseType.LOGIN_FAIL);
             return false;
-        }
+        }*/
 
         //send the conversation data second
         ArrayList<Conversation> conversationsToSend = new ArrayList<>();
@@ -79,17 +81,24 @@ public class AuthenticateHandler {
             
         }
 
-        Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_DATA);
+        Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.CONVERSATION_SENT);
+        //send the conversation data
+        sendPayload(sendConversations);
+        //i also need to send the active client list so the client logging in know who is online
+        ArrayList<String> activeUsers = Server.getActiveUserIDs();
+        Wrapper activeUsersPayload = new Wrapper(activeUsers, ResponseType.USER_INFO_SENT);
+        sendPayload(activeUsersPayload);
+        /*
         boolean conversationsSent = responseHandle.sendWithRetry(sendConversations, ResponseType.DATA_RECEIVED);
 
         if (!conversationsSent) {
             sendResponse(new Message("FAILED TO SEND CONVERSATION DATA", "Server"), ResponseType.LOGIN_FAIL);
             return isLoggedIn;
-        }
+        }*/
 
         // Success
         isLoggedIn = true;
-        sendResponse(new Message("LOGGING IN", "Server"), ResponseType.LOGIN_SUCCESS);
+        //sendResponse(new Message("LOGGING IN", "Server"), ResponseType.LOGIN_SUCCESS);
         return isLoggedIn;
     }
 
@@ -190,6 +199,16 @@ public class AuthenticateHandler {
     // Getters so ClientHandler can sync state after login
     public boolean isLoggedIn() { return isLoggedIn; }
     public User getUserAccount() { return userAccount; }
+    
+    // Private helper to reduce repetitive try/catch blocks
+    private void sendPayload(Wrapper payload) {
+        try {
+            out.writeObject(payload);
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     // Private helper to reduce repetitive try/catch blocks
     private void sendResponse(Message msg, ResponseType responseType) {
