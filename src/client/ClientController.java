@@ -31,37 +31,35 @@ public class ClientController implements ClientCalls {
         if (data == null || data.getResponseType() == null) return;
 
         switch (data.getResponseType()) {
-            case LOGIN_SUCCESS:
+            case LOGIN_SUCCESS: 
             case LOGIN_FAIL:
             case LOGOUT_SUCCESS:
             case LOGOUT_FAIL:
-            case USER_INFO_SENT:
-            case USER_INFO_NOT_SENT:
+            case USER_INFO_SENT: //To search a specific user information
+            case USER_INFO_NOT_SENT: //Wrong payload (not likely to happen because of the use of a gui)
             case REGISTER_USER_SUCCESS:
-            case REGISTER_USER_FAIL:
+            case REGISTER_USER_FAIL: //Wrong payload or duplicate login info
             case CREATE_CONVERSATION_SUCCESS:
-            case CREATE_CONVERSATION_FAIL:
+            case CREATE_CONVERSATION_FAIL: //Wrong payload
             case GROUP_CREATION_SUCCESS:
-            case GROUP_CREATION_FAIL:
+            case GROUP_CREATION_FAIL: //Wrong payload
             case ADD_PARTICIPANT_SUCCESS:
-            case ADD_PARTICIPANT_FAIL:
+            case ADD_PARTICIPANT_FAIL: //Wrong payload or user is in the conversation or doesn't exist
             case REMOVE_PARTICIPANT_SUCCESS:
-            case REMOVE_PARTICIPANT_FAIL:
+            case REMOVE_PARTICIPANT_FAIL: //Wrong payload or user isn't in the conversation or doesn't exist
             case GROUP_NAME_CHANGED:
-            case CONVERSATIONS_FOUND:
-            case CONVERSATION_LOG_RECEIVED:
+            case CONVERSATION_LOG_QUERY_RESULT:
             case ACTIVE_CONVERSATION_UPDATED:
                 deliverResponse(data);
                 break;
 
-            case CONVERSATION_SENT:
+            case CONVERSATION_SENT: //Send conversation to client
                 handleIncomingConversation((Conversation) data.getPayload());
                 break;
-            case DATA_RECEIVED:
+            case DATA_RECEIVED: //To update user information
                 handleIncomingData(data.getPayload());
                 break;
-            case MESSAGE_SENT:
-            case MESSAGE_NOT_SENT:
+            case MESSAGE_SENT: //Send message to client
             case CONVERSATION_NOT_SENT:
             case DATA_NOT_RECEIVED:
                 if (updateListener != null) {
@@ -72,7 +70,7 @@ public class ClientController implements ClientCalls {
                 break;
 
             case SENDING_MESSAGE:
-            case SENDING_DATA:
+            case SENDING_CONVERSATIONS:
                 System.out.println("Server status: " + data.getResponseType());
                 break;
 
@@ -258,9 +256,9 @@ public class ClientController implements ClientCalls {
 
     @Override
     public ArrayList<Conversation> queryConversationLogsByUser(User u) {
-        Wrapper resp = sendAndWait(u, RequestType.FIND_CONVERSATION_BY_USER);
+        Wrapper resp = sendAndWait(u, RequestType.QUERY_CONVERSATION_LOG_BY_USER);
         if (resp == null) return new ArrayList<>();
-        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
+        if (resp.getResponseType() == ResponseType.CONVERSATION_LOG_QUERY_RESULT) {
             @SuppressWarnings("unchecked")
             ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
             return result;
@@ -270,9 +268,9 @@ public class ClientController implements ClientCalls {
 
     @Override
     public ArrayList<Conversation> queryConversationLogsByID(String id) {
-        Wrapper resp = sendAndWait(id, RequestType.FIND_CONVERSATION_BY_ID);
+        Wrapper resp = sendAndWait(id, RequestType.QUERY_CONVERSATION_LOG_BY_ID); 
         if (resp == null) return new ArrayList<>();
-        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
+        if (resp.getResponseType() == ResponseType.CONVERSATION_LOG_QUERY_RESULT) {
             @SuppressWarnings("unchecked")
             ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
             return result;
@@ -282,7 +280,7 @@ public class ClientController implements ClientCalls {
 
     @Override
     public Conversation requestConversationLogById(String id) {
-        Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION_LOG);
+        Wrapper resp = sendAndWait(id, RequestType.REQUEST_CONVERSATION_LOG);
         if (resp == null) return null;
         if (resp.getResponseType() == ResponseType.CONVERSATION_SENT) {
             return (Conversation) resp.getPayload();

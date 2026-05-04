@@ -1,9 +1,35 @@
 package model;
 
 public enum RequestType {
-    LOGIN, LOGOUT, REGISTER, GET_USER_INFO,
-    CREATE_CONVERSATION, CREATE_GROUP_CONVERSATION, GET_CONVERSATION,
-    ADD_PARTICIPANT, REMOVE_PARTICIPANT,
-    SEND_MESSAGE, GET_MESSAGES, GET_NEW_MESSAGES, UPDATE_ACTIVE_CONVERSATION,
-    QUERY_CONVERSATION_LOG, REQUEST_CONVERSATION_LOG, CHANGE_GROUP_NAME
+    
+	LOGIN, //To login sends String of username and password
+    LOGOUT, //No object sent
+    REGISTER, //Sends an entire user
+    GET_USER_INFO, //Sends entire user
+    SEND_MESSAGE, //Sends message
+    
+    ADD_PARTICIPANT, //Sends an entire user
+    REMOVE_PARTICIPANT, //Sends an entire user
+    CREATE_CONVERSATION, //Sends an entire conversation
+    CREATE_GROUP_CONVERSATION, //Sends an entire conversation
+    
+    
+    GET_CONVERSATION, //Sends the ID of a conversation
+
+    
+    
+    UPDATE_ACTIVE_CONVERSATION, //Sends an entire conversation
+    
+    
+    UPDATE_USER_INFO, //Sends an entire user
+    
+    
+    CHANGE_GROUP_NAME, //Sends an entire conversation
+    
+    
+    
+    
+    QUERY_CONVERSATION_LOG_BY_USER, //Sends an entire user
+    QUERY_CONVERSATION_LOG_BY_ID //Sends a String of ID
+    
 }; 
