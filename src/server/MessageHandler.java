@@ -1,6 +1,6 @@
 package server;
 
-import java.io.IOException;
+import java.io.IOException; 
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,10 +24,36 @@ public class MessageHandler {
 		 * This method gets the messages of a conversation to send to a User.
 		 * The ConversationID should be used to get the messages for that
 		 * Conversation.  
-		 */
-		sendResponse(new Message("GETTING MESSAGE", "Server"), ResponseType.SENDING_MESSAGE);
+		 */ 
 		
-	}
+		 if (!(obj.getPayload() instanceof String)) {
+		        sendResponse(new Message("INVALID PAYLOAD: CONVERSATION ID REQUIRED", "Server"),
+		                ResponseType.MESSAGE_NOT_SENT);
+		        return;
+		    }
+
+		    String conversationID = (String) obj.getPayload();
+
+		    Conversation conversation = Server.getConversation(conversationID);
+
+		    if (conversation == null) {
+		        sendResponse(new Message("CONVERSATION NOT FOUND", "Server"),
+		                ResponseType.MESSAGE_NOT_SENT);
+		        return;
+		    }
+
+		    ArrayList<Message> messages = conversation.getMessages();
+
+		    try {
+		        Wrapper response = new Wrapper(messages, ResponseType.SENDING_DATA);
+		        out.writeObject(response);
+		        out.flush();
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		        sendResponse(new Message("FAILED TO SEND MESSAGES", "Server"),
+		                ResponseType.MESSAGE_NOT_SENT);
+		    }
+		} 
 	
 	void handleGetNewMessages(ObjectOutputStream out, Wrapper obj) {
 		/* 
@@ -35,10 +61,34 @@ public class MessageHandler {
 		 * This method will send unread messages to a User when they 
 		 * switch to the correct conversation.  
 		 */
-		sendResponse(new Message("GETTING NEW MESSAGE", "Server"), ResponseType.SENDING_MESSAGE);
-		
+		if (!(obj.getPayload() instanceof String)) {
+	        sendResponse(new Message("INVALID PAYLOAD: CONVERSATION ID REQUIRED", "Server"),
+	                ResponseType.MESSAGE_NOT_SENT);
+	        return;
+	    }
+
+	    String conversationID = (String) obj.getPayload();
+
+	    Conversation conversation = Server.getConversation(conversationID);
+
+	    if (conversation == null) {
+	        sendResponse(new Message("CONVERSATION NOT FOUND", "Server"),
+	                ResponseType.MESSAGE_NOT_SENT);
+	        return;
+	    }
+
+	    ArrayList<Message> messages = conversation.getMessages();
+
+	    try {
+	        Wrapper response = new Wrapper(messages, ResponseType.SENDING_DATA);
+	        out.writeObject(response);
+	        out.flush();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        sendResponse(new Message("FAILED TO SEND NEW MESSAGES", "Server"),
+	                ResponseType.MESSAGE_NOT_SENT);
+	    }
 	}
-	
 	
 	
 	void handleSendMessage(Wrapper obj, ArrayList<Message> logQueue, String activeConversationID, String senderID) {
@@ -85,6 +135,7 @@ public class MessageHandler {
 		//first use conversationID to find the correct conversation
 		//a map in the Server currently holds all the conversations
 		Conversation currentConversation = Server.getConversation(activeConversationID);
+		
 	    if (currentConversation == null) {
 	    	sendResponse(new Message("CONVERSATION NOT FOUND", "Server"), ResponseType.MESSAGE_NOT_SENT);
             return;
@@ -95,7 +146,8 @@ public class MessageHandler {
 		 */
 	    //save the message to the current conversation
 	    //offline user will get the messages when they log in via Conversation object
-	    currentConversation.addMessage(messageToSend);
+	    currentConversation.addMessage(messageToSend); 
+	    Server.saveConversation(currentConversation);
 		//get the list of participants from the conversation
 		HashSet<String> conversationParticipants = currentConversation.getParticipants();
 		//get the UserIDs so you can send a message to their ClientHandler.clientSocket

@@ -86,7 +86,7 @@ public class FileManager {
      * Returns either a Conversation or GroupConversation object. 
     */
     private Conversation readConversation(File file) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
+    	BufferedReader reader = new BufferedReader(new FileReader(file));
 
         String line;
         String type = "DM";
@@ -100,6 +100,9 @@ public class FileManager {
         boolean readingMessages = false;
 
         while ((line = reader.readLine()) != null) {
+            if (line.trim().isEmpty()) {
+                continue;
+            }
 
             if (line.equals("messages")) {
                 readingMessages = true;
@@ -109,19 +112,37 @@ public class FileManager {
             if (!readingMessages) {
                 String[] parts = line.split(",", 2);
 
-                if (parts[0].equals("type")) type = parts[1];
-                if (parts[0].equals("creatorID")) creator = parts[1];
-                if (parts[0].equals("groupName")) groupName = parts[1];
-                if (parts[0].equals("createdAt")) created = Instant.parse(parts[1]);
+                if (parts.length < 2) {
+                    continue;
+                }
 
-                if (parts[0].equals("participants")) {
-                    String[] ids = parts[1].split(";");
+                String key = parts[0];
+                String value = parts[1];
+
+                if (key.equals("type")) {
+                    type = value;
+                } else if (key.equals("creatorID")) {
+                    creator = value;
+                } else if (key.equals("groupName")) {
+                    groupName = value;
+                } else if (key.equals("createdAt")) {
+                    created = Instant.parse(value);
+                } else if (key.equals("participants")) {
+                    String[] ids = value.split(";");
+
                     for (String id : ids) {
-                        participants.add(id.trim());
+                        if (!id.trim().isEmpty()) {
+                            participants.add(id.trim());
+                        }
                     }
                 }
             } else {
                 String[] parts = line.split(",", 3);
+
+                if (parts.length < 3) {
+                    continue;
+                }
+
                 Message m = new Message(parts[2], parts[0], Instant.parse(parts[1]));
                 messages.add(m);
             }
@@ -131,27 +152,72 @@ public class FileManager {
 
         Conversation base = new Conversation(created);
 
-        for (String p : participants) base.addParticipant(p);
-        for (Message m : messages) base.addMessage(m);
+        for (String p : participants) {
+            base.addParticipant(p);
+        }
 
         if (type.equals("GC")) {
             GroupConversation gc = new GroupConversation(base, creator, created);
             gc.setName(groupName);
+
+            for (Message m : messages) {
+                gc.addMessage(m);
+            }
+
             return gc;
+        }
+
+        for (Message m : messages) {
+            base.addMessage(m);
         }
 
         return base;
     }
+    
+ // Saves user data back to users.csv.
+ // If the user already exists, replace that row instead of adding a duplicate.
+ public synchronized void saveUser(User user) throws IOException {
+     File file = new File(USERS_FILE);
 
-    // save methods 
+     ArrayList<String> lines = new ArrayList<>();
+     boolean userUpdated = false;
 
-    public synchronized void saveUser(User user) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE, true));
-        writer.write(userToCSV(user));
-        writer.newLine();
-        writer.close();
-    }
+     if (file.exists()) {
+         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+             String line;
 
+             while ((line = reader.readLine()) != null) {
+                 if (line.startsWith(user.getUserID() + ",")) {
+                     lines.add(userToCSV(user));
+                     userUpdated = true;
+                 } else {
+                     lines.add(line);
+                 }
+             }
+         }
+     }
+
+     // If this user was not already in the file, add them as a new row.
+     if (!userUpdated) {
+         if (lines.isEmpty()) {
+             lines.add("userId,username,password,realName,position,isIT");
+         }
+
+         lines.add(userToCSV(user));
+     }
+
+     // Rewrite the whole file with the updated user row.
+     try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE, false))) {
+         for (String line : lines) {
+             writer.write(line);
+             writer.newLine();
+         }
+     }
+ }
+    	    
+    // Saves a conversation to disk
+    // Overwrites existing file to maintain latest state
+    // Handles both direct messages (DM) and group conversations (GC)
     public synchronized void saveConversation(Conversation conversation) throws IOException {
         String fileName = CONVERSATION_FOLDER + "/" + conversation.getID() + ".csv";
 
@@ -192,7 +258,9 @@ public class FileManager {
 
         writer.close();
     }
-
+    // Writes logQueue messages to a log file
+    // Each user has a separate log file for tracking activity
+    // Logs are appended to preserve history
     public synchronized void saveLogQueue(String userId, ArrayList<Message> logQueue) throws IOException {
         String fileName = LOG_FOLDER + "/" + userId + "_logs.csv";
 
@@ -205,7 +273,7 @@ public class FileManager {
 
         writer.close();
     }
-
+    // Converts a User object into CSV format for storage in users.csv
     private String userToCSV(User user) {
         return user.getUserID() + ","
                 + user.getLoginInfo().getUsername() + ","
