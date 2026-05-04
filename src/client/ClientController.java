@@ -216,39 +216,39 @@ public class ClientController implements ClientCalls {
 
     @Override
     public ArrayList<Conversation> queryConversationLogsByUser(User u) {
-        runner.send(u, RequestType.FIND_CONVERSATION_BY_USER);
-
-        Wrapper resp = waitForResponse();
-        if (resp == null) return new ArrayList<>();
-        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
-            @SuppressWarnings("unchecked")
-            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
-            return result;
-        }
+//        runner.send(u, RequestType.FIND_CONVERSATION_BY_USER);
+//
+//        Wrapper resp = waitForResponse();
+//        if (resp == null) return new ArrayList<>();
+//        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
+//            @SuppressWarnings("unchecked")
+//            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
+//            return result;
+//        }
         return new ArrayList<>();
     }
 
     @Override
     public ArrayList<Conversation> queryConversationLogsByID(String id) {
-        runner.send(id, RequestType.FIND_CONVERSATION_BY_ID);
-
-        Wrapper resp = waitForResponse();
-        if (resp == null) return new ArrayList<>();
-        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
-            @SuppressWarnings("unchecked")
-            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
-            return result;
-        }
+//        runner.send(id, RequestType.FIND_CONVERSATION_BY_ID);
+//
+//        Wrapper resp = waitForResponse();
+//        if (resp == null) return new ArrayList<>();
+//        if (resp.getResponseType() == ResponseType.CONVERSATIONS_FOUND) {
+//            @SuppressWarnings("unchecked")
+//            ArrayList<Conversation> result = (ArrayList<Conversation>) resp.getPayload();
+//            return result;
+//        }
         return new ArrayList<>();
     }
 
     @Override
     public Conversation requestConversationLogById(String id) {
-        runner.send(id, RequestType.GET_CONVERSATION_LOG);
+        runner.send(id, RequestType.GET_CONVERSATION);
 
         Wrapper resp = waitForResponse();
         if (resp == null) return null;
-        if (resp.getResponseType() == ResponseType.CONVERSATION_LOG_RECEIVED) {
+        if (resp.getResponseType() == ResponseType.CONVERSATION_SENT) {
             return (Conversation) resp.getPayload();
         }
         return null;

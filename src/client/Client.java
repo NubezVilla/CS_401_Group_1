@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-
+import GUI.MainWindow;
 
 public class Client {
 	private static int port = 54927;
@@ -29,6 +29,9 @@ public class Client {
 			ClientRunner runner = new ClientRunner(socket, wrappedObjects);
 			client = new ClientController(runner);
 			new Thread(runner).start();
+			
+			MainWindow w = new MainWindow(client);
+			w.startup();
 		}
 	}
 	
@@ -70,22 +73,6 @@ public class Client {
 					case LOGIN_FAIL:
 						myClient.deliverResponse(data);
 						return;
-					case GET_USER_INFO:
-						break;
-					case CREATE_CONVERSATION:
-						break;
-					case CREATE_GROUP_CONVERSATION:
-						break;
-					case GET_CONVERSATION:
-						break;
-					case ADD_PARTICIPANT:
-						break;
-					case REMOVE_PARTICIPANT:
-						break;
-					case GET_MESSAGES:
-						break;
-					case GET_NEW_MESSAGES:
-						break;
 					default:
 						break;
 					}
