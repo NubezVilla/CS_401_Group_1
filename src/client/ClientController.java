@@ -442,10 +442,7 @@ public class ClientController implements ClientCalls {
         }
         return new ArrayList<>();
     }
-    
-    
-    
-    
+
     @Override
     public void updateCurrentLog(String id) {
         convo.setCurrentLog(Integer.valueOf(id));
