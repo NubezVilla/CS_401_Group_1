@@ -48,7 +48,7 @@ public class ClientController implements ClientCalls {
             case REMOVE_PARTICIPANT_SUCCESS:
             case REMOVE_PARTICIPANT_FAIL: //Wrong payload or user isn't in the conversation or doesn't exist
             case GROUP_NAME_CHANGED:
-            case CONVERSATION_LOG_QUERY_RESULT:
+           // case CONVERSATIONS_FOUND:
             case ACTIVE_CONVERSATION_UPDATED:
                 deliverResponse(data);
                 break;

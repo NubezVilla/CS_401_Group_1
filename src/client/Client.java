@@ -1,5 +1,6 @@
 package client;
 import model.*;
+import GUI.MainWindow;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -31,8 +32,12 @@ public class Client {
 	    Thread runnerThread = new Thread(runner, "ClientRunner");
 	    listenerThread.start();
 	    runnerThread.start();
+	    MainWindow m = new MainWindow(client);
+	    m.startup();
 	    listenerThread.join();
 	    runnerThread.join();
+	    
+	    
 	    try { socket.close(); } catch (IOException ignored) {}
 	}
 	
