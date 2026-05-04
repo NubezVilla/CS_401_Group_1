@@ -78,4 +78,15 @@ public class User implements Serializable {
 		itUser = v;
 	}
 	
+	
+//	Added
+	public void readConversation(String ID) {
+		if(unreadConversationIDs.contains(ID)) {
+			unreadConversationIDs.remove(ID);
+		}
+	}
+	
+	public void addUnreadConversation(String ID) {
+		unreadConversationIDs.add(ID);
+	}
 }

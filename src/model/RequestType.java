@@ -35,6 +35,5 @@ public enum RequestType {
     
     
 // Just added after
-    SEARCH_USER_BY_ID, //Sends a String of ID(user)
-    SEARCH_SIMILAR_USERS, //Sends a String of Matching(find users that names start with Matching)
+    SEARCH_SIMILAR_USERS, //Sends a String of Matching(find users that names and IDs start with Matching)
 }; 

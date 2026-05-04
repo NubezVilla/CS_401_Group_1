@@ -7,7 +7,7 @@ public enum ResponseType {
     REGISTER_USER_SUCCESS, REGISTER_USER_FAIL,  //To register a new account, object is User
     USER_INFO_SENT, USER_INFO_NOT_SENT, //To search a specific user, object is User
     MESSAGE_SENT, MESSAGE_NOT_SENT, //For the original client who sent the message, object is Message
-    SENDING_MESSAGE, //For everyone else, no request form the user, object is Message
+    SENDING_MESSAGE, //For everyone else, no request form the user, object is Envelope
     ADD_PARTICIPANT_SUCCESS, ADD_PARTICIPANT_FAIL, //To add participant to a group message, object is Message(Message is 'participitant is added')
     REMOVE_PARTICIPANT_SUCCESS, REMOVE_PARTICIPANT_FAIL, //To remove participant from a group message, object is Message(Message is 'participitant is removed')
     GROUP_CREATION_SUCCESS, GROUP_CREATION_FAIL, //To create a group conversation, object is Conversation
@@ -35,6 +35,5 @@ public enum ResponseType {
 
 
     //Just added after
-    USER_FOUND, USER_NOT_FOUND,//To inform user that the person they search for exits or not, object is User
     LIST_OF_USERS_SIMILAR //To send an arrayList of matching users based on what the user sent. object is ArrayList of users
 }
