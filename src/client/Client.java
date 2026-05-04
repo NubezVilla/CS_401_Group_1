@@ -8,7 +8,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import GUI.MainWindow;
 
 public class Client {
 	private static int port = 54927;
@@ -73,7 +72,7 @@ public class Client {
 	                    continue;
 	                }
 
-	                myClient.handleIncoming(data);
+	                myClient.parseWrapper(data);
 	            }
 	        } finally {
 	            try { clientSocket.close(); } catch (IOException e) {

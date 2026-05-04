@@ -87,11 +87,20 @@ public class DataModel {
 		currentConversation = conversationList.getElementAt(index);
 		currentConversationMessageList.setMessages(conversationList.getElementAt(index).getMessages());
 	}
+
 	
-	protected void setCurrentLog(int index) {
-		currentLog = logsList.elementAt(index);
-		currentLogMessageList.setMessages(logsList.elementAt(index).getMessages());
+//	Changed so that it takes any conversation that the server has, not just the one that the user is connected to
+//	Makes more sense because it's specifically for IT users
+	protected void setCurrentLog(Conversation c) {
+		currentLog = c;
+		currentLogMessageList.setMessages(c.getMessages());
 	}
+	
+	
+//	protected void setCurrentLog(int index) {
+//		currentLog = logsList.elementAt(index);
+//		currentLogMessageList.setMessages(logsList.elementAt(index).getMessages());
+//	}
 	
 	public DefaultListModel<Conversation> getLogsList(){
 		return logsList;
@@ -137,4 +146,19 @@ public class DataModel {
 		reportsConversation = c;
 	}
 	
+	
+	
+//	Added new
+
+//	private ArrayList<Conversation> ConversationList;
+//
+//	
+//	public int findConversationIndex(String id) {
+//		for(int x = 0; x < ConversationList.size(); x++) {
+//			if(ConversationList.get(x).getID().equals(id)) {
+//				return x;
+//			}
+//		}
+//		return -1;
+//	}
 }

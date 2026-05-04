@@ -2,7 +2,7 @@ package model;
 
 public enum RequestType {
     
-	LOGIN, //To login sends String of username and password
+	LOGIN, //To login sends LoginInfo
     LOGOUT, //No object sent
     REGISTER, //Sends an entire user
     GET_USER_INFO, //Sends entire user
@@ -10,7 +10,7 @@ public enum RequestType {
     
     ADD_PARTICIPANT, //Sends an entire user
     REMOVE_PARTICIPANT, //Sends an entire user
-    CREATE_CONVERSATION, //Sends an entire conversation
+    CREATE_CONVERSATION, //Sends an entire (Group)conversation
     CREATE_GROUP_CONVERSATION, //Sends an entire conversation
     
     
@@ -30,6 +30,11 @@ public enum RequestType {
     
     
     QUERY_CONVERSATION_LOG_BY_USER, //Sends an entire user
-    QUERY_CONVERSATION_LOG_BY_ID //Sends a String of ID
+    QUERY_CONVERSATION_LOG_BY_ID, //Sends a String of ID(coversation)
     
+    
+    
+// Just added after
+    SEARCH_USER_BY_ID, //Sends a String of ID(user)
+    SEARCH_SIMILAR_USERS, //Sends a String of Matching(find users that names start with Matching)
 }; 
