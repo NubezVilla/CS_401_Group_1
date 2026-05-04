@@ -54,7 +54,10 @@ public class ConversationTopBar extends JPanel {
 			}
 		});
 		addMember = new JButton("+");
-		addMember.addActionListener(e -> setupAddUserDialog());
+		addMember.addActionListener(e ->{
+			setupAddUserDialog();
+			refreshMainPage.run();
+		});
 		removeMember = new JButton("−");
 		removeMember.addActionListener(e->removeParticipantsMenu.show(removeMember, 0, removeMember.getHeight()));
 		convertToGroup = new JButton("Ⓖ");
@@ -120,13 +123,15 @@ public class ConversationTopBar extends JPanel {
 		for (String i : DataModel.getInstance().getCurrentConversation().getParticipants()) {
 			User u = client.getUserByID(i);
 			participantsMenu.add(new UserDisplayComponent(u, false));
-			UserDisplayComponent temp = new UserDisplayComponent(u, false);
-			temp.setOnClick(() -> {
-					client.removeUserFromGroupChat(u);
-					removeParticipantsMenu.setVisible(false);
-					refresh();
-			});
-			removeParticipantsMenu.add(temp);
+			if (!u.equals(DataModel.getInstance().getCurrentUser())) {
+				UserDisplayComponent temp = new UserDisplayComponent(u, false);
+				temp.setOnClick(() -> {
+						client.removeUserFromGroupChat(u);
+						removeParticipantsMenu.setVisible(false);
+						refreshMainPage.run();
+				});
+				removeParticipantsMenu.add(temp);
+			}
 		}
 	}
 	
@@ -151,6 +156,7 @@ public class ConversationTopBar extends JPanel {
 	
 	private void setupAddUserDialog() {
 		JDialog userAddDialog = new JDialog();
+		userAddDialog.setModal(true);
 		userAddDialog.setTitle("Add A User");
 		userAddDialog.setLayout(new GridBagLayout());
 		UserDisplayComponent user = new UserDisplayComponent(null, false);
@@ -192,6 +198,7 @@ public class ConversationTopBar extends JPanel {
 	
 	private void setupModifyInfoDialog() {
 		JDialog infoDialog = new JDialog();
+		infoDialog.setModal(true);
 		infoDialog.setTitle("Add A User");
 		infoDialog.setLayout(new GridBagLayout());
 		

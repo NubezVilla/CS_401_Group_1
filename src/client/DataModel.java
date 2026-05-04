@@ -4,6 +4,7 @@ import java.util.Map;
 
 import javax.swing.DefaultListModel;
 
+import GUI.ConversationListModel;
 import GUI.DEBUGUserGenerator;
 import GUI.MessageListModel;
 import model.*;
@@ -16,7 +17,7 @@ public class DataModel {
 	private Conversation currentConversation;
 	//These have to be ListModels because they need to ping the GUI to update when they get updated
 	//List Models need to be updated on the EDT, either talk to me or look up how that has to be handled. 
-	private DefaultListModel<Conversation> conversationList;
+	private ConversationListModel conversationList;
 	private MessageListModel currentConversationMessageList;
 	private Map<String, User> userCache;
 	
@@ -29,7 +30,7 @@ public class DataModel {
 	protected DataModel() {
 		logsList = new DefaultListModel<Conversation>();
 		currentLogMessageList = new MessageListModel();
-		conversationList = new DefaultListModel<Conversation>();
+		conversationList = new ConversationListModel();
 		currentConversationMessageList = new MessageListModel();
 		userCache = new HashMap<>();
 	}
@@ -43,7 +44,7 @@ public class DataModel {
 		return currentUser;
 	}
 	
-	public DefaultListModel<Conversation> getConversationList(){
+	public ConversationListModel getConversationList(){
 		return conversationList;
 	}
 	
@@ -54,9 +55,8 @@ public class DataModel {
 	}
 	
 	public void addMessageToConversation(Conversation c, Message m) {
-		int index = conversationList.indexOf(c);
-		conversationList.get(index).addMessage(m);
-		conversationListSort();
+		conversationList.get(c).addMessage(m);
+		conversationList.sortByRecentMessage();
 	}
 	
 	public MessageListModel getCurrentConversationMessageList(){
@@ -103,24 +103,14 @@ public class DataModel {
 	}
 	//DEBUG: Public for GUI Testing
 	public void addConversationToList(Conversation c) {
-		conversationList.add(conversationList.size(), c);
-		conversationListSort();
+		conversationList.add(conversationList.getSize(), c);
+		conversationList.sortByRecentMessage();
 	}
 	
-	private void conversationListSort() {
-		Conversation last = conversationList.get(conversationList.size() - 1);
-		for (int i = conversationList.size() - 2; i >= 0; i--) {
-			if (last.getMostRecentMessageTimestamp().isAfter(conversationList.get(i).getMostRecentMessageTimestamp())) {
-				conversationList.set(i+1, conversationList.get(i));
-				conversationList.set(i, last);
-			}
-			last = conversationList.get(i);
-		}
-	}
 	//DEBUG: Public for GUI Testing 
 	public void setCurrentConversation(int index) {
-		currentConversation = conversationList.elementAt(index);
-		currentConversationMessageList.setMessages(conversationList.elementAt(index).getMessages());
+		currentConversation = conversationList.getElementAt(index);
+		currentConversationMessageList.setMessages(conversationList.getElementAt(index).getMessages());
 	}
 	
 	//DEBUG: Public for GUI Testing 
