@@ -276,7 +276,7 @@ public class FileManager {
     // Converts a User object into CSV format for storage in users.csv
     private String userToCSV(User user) {
         return user.getUserID() + ","
-                + user.getLoginInfo().getUsername() + ","
+                + user.getLoginInfo().getUserName() + ","
                 + user.getLoginInfo().getPassword() + ","
                 + user.getName() + ","
                 + user.getPosition() + ","

@@ -284,7 +284,7 @@ public class ClientController implements ClientCalls {
     public Conversation requestConversationLogById(String id) {
         Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION_LOG);
         if (resp == null) return null;
-        if (resp.getResponseType() == ResponseType.CONVERSATION_LOG_RECEIVED) {
+        if (resp.getResponseType() == ResponseType.CONVERSATION_SENT) {
             return (Conversation) resp.getPayload();
         }
         return null;
