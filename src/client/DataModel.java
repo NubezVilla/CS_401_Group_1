@@ -151,14 +151,26 @@ public class DataModel {
 //	Added new
 
 //	private ArrayList<Conversation> ConversationList;
+	private ArrayList<User> ActiveUser = new ArrayList<User>();
 //
 //	
-//	public int findConversationIndex(String id) {
-//		for(int x = 0; x < ConversationList.size(); x++) {
-//			if(ConversationList.get(x).getID().equals(id)) {
-//				return x;
-//			}
-//		}
-//		return -1;
-//	}
+	public int findConversationIndex(String id) {
+		return conversationList.findConversation(id);
+	}
+	
+	public void addActiveUsers(ArrayList<User> Ar) {
+		ActiveUser.addAll(Ar);
+	}
+	
+	public void addActiveUser(User U) {
+		ActiveUser.add(U);
+	}
+	
+	public Conversation getConversationAtIndex(int idx) {
+		return conversationList.getElementAt(idx);
+	}
+	
+	public void removeActiveUser(User U) {
+		ActiveUser.remove(U);
+	}
 }

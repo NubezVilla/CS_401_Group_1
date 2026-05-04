@@ -14,8 +14,6 @@ public class ClientController implements ClientCalls {
 
     private User loggedUser;
     private DataModel convo;
-    private ClientUpdateListener updateListener;
-
     private static final long RESPONSE_TIMEOUT_MS = 10_000;
 
     public ClientController(ClientRunner run) {
@@ -27,49 +25,55 @@ public class ClientController implements ClientCalls {
         if (data == null || data.getResponseType() == null) return;
 
         switch (data.getResponseType()) {
-            case LOGIN_SUCCESS: 
-            case LOGIN_FAIL:
-            case LOGOUT_SUCCESS:
-            case LOGOUT_FAIL:
-            case USER_INFO_SENT: //To search a specific user information
-            case USER_INFO_NOT_SENT: //Wrong payload (not likely to happen because of the use of a gui)
-            case REGISTER_USER_SUCCESS:
-            case REGISTER_USER_FAIL: //Wrong payload or duplicate login info
-            case CREATE_CONVERSATION_SUCCESS:
-            case CREATE_CONVERSATION_FAIL: //Wrong payload
-            case GROUP_CREATION_SUCCESS:
-            case GROUP_CREATION_FAIL: //Wrong payload
-            case ADD_PARTICIPANT_SUCCESS:
-            case ADD_PARTICIPANT_FAIL: //Wrong payload or user is in the conversation or doesn't exist
-            case REMOVE_PARTICIPANT_SUCCESS:
-            case REMOVE_PARTICIPANT_FAIL: //Wrong payload or user isn't in the conversation or doesn't exist
-            case GROUP_NAME_CHANGED:
-           // case CONVERSATIONS_FOUND:
+            case LOGIN_SUCCESS, LOGIN_FAIL: 
+            case LOGOUT_SUCCESS, LOGOUT_FAIL:
+            case REGISTER_USER_SUCCESS, REGISTER_USER_FAIL:
+            case USER_INFO_SENT, USER_INFO_NOT_SENT: 
+            case MESSAGE_SENT, MESSAGE_NOT_SENT:
+            case ADD_PARTICIPANT_SUCCESS, ADD_PARTICIPANT_FAIL: 
+            case REMOVE_PARTICIPANT_SUCCESS, REMOVE_PARTICIPANT_FAIL: 
+            case GROUP_CREATION_SUCCESS, GROUP_CREATION_FAIL:
+            case CREATE_CONVERSATION_SUCCESS, CREATE_CONVERSATION_FAIL: 
+            case CONVERSATION_SENT, CONVERSATION_NOT_SENT:
             case ACTIVE_CONVERSATION_UPDATED:
-                deliverResponse(data);
-                break;
-
-            case CONVERSATION_SENT: //Send conversation to client
-                handleIncomingConversation((Conversation) data.getPayload());
-                break;
-            case DATA_RECEIVED: //To update user information
-                handleIncomingData(data.getPayload());
-                break;
-            case MESSAGE_SENT: //Send message to client
-            case CONVERSATION_NOT_SENT:
-            case DATA_NOT_RECEIVED:
-                if (updateListener != null) {
-                    updateListener.onAck(data.getResponseType(), data.getPayload());
-                } else {
-                    System.out.println("Ack: " + data.getResponseType());
-                }
-                break;
-
+            case UPDATED_USER_RECEIVED, UPDATED_USER_NOT_RECEIVED:
+            case CONVERSATION_LOG_QUERY_RESULT:
+            case LIST_OF_USERS_SIMILAR:
+            	deliverResponse(data);
+            	break;
+            	
             case SENDING_MESSAGE:
+            	getMessage((Envelope) data.getPayload());
+            	break;
+            case GROUP_NAME_CHANGED:
+            	changeGroupName((Conversation) data.getPayload());
             case SENDING_CONVERSATIONS:
-                System.out.println("Server status: " + data.getResponseType());
-                break;
-
+            	Object conversations = data.getPayload();
+            	if(conversations instanceof ArrayList<?> list) {
+            		ArrayList<Conversation> result = new ArrayList<>();
+            		for(Object o: list) {
+            			if(o instanceof Conversation c) {
+            				result.add(c);
+            			}
+            		}
+            		getConversations(result);
+            	}
+            	break;
+            case SENDING_ACTIVE_USERS:
+            	Object users = data.getPayload();
+            	if(users instanceof ArrayList<?> list) {
+            		ArrayList<User> result = new ArrayList<>();
+            		for(Object o: list) {
+            			if(o instanceof User u) {
+            				result.add(u);
+            			}
+            		}
+            		getActiveUsers(result);
+            	}
+            case USER_LOGGED_IN, USER_LOGGED_OUT:
+            	updateActiveUsers(data);
+            case PARTICIPANT_ADDED, PARTICIPANT_REMOVED:
+            	groupConversationParticipantChanged(data);
             default:
                 System.out.println("Unhandled response type: " + data.getResponseType());
                 break;
@@ -121,6 +125,26 @@ public class ClientController implements ClientCalls {
     
     @Override
     public Boolean createNewUser(String name, String position, String username, String password) {
+        LoginInfo thisUser = new LoginInfo(username, password);
+        thisUser.setName(name);
+        thisUser.setPosition(position);
+        Wrapper resp = sendAndWait(thisUser, RequestType.REGISTER);
+        if(resp == null) {
+        	return false;
+        }
+        if(resp.getResponseType() == ResponseType.REGISTER_USER_SUCCESS) {
+            loggedUser = (User) resp.getPayload();
+            convo.setCurrentUser(loggedUser);
+            return true;
+        }
+        return false;
+    }
+    
+    
+    
+    
+    @Override
+    public Boolean createNewITUser(String name, String position, String username, String password) {
         User thisUser = new User(username, password);
         thisUser.setName(name);
         thisUser.setPosition(position);
@@ -133,23 +157,27 @@ public class ClientController implements ClientCalls {
             convo.setCurrentUser(loggedUser);
             return true;
         }
+        return false;
     }
     
     
     
     
     @Override
-    public Boolean createNewITUser(String name, String position, String username, String password) {
-        User thisUser = new User(username, password);
-        thisUser.setName(name);
-        thisUser.setPosition(position);
-        Wrapper resp = sendAndWait(thisUser, RequestType.REGISTER);
-        if(resp == null) return false;
-        if(resp.getResponseType() == ResponseType.REGISTER_USER_SUCCESS) {
-            loggedUser = (User) resp.getPayload();
-            convo.setCurrentUser(loggedUser);
-            return true;
+    public User getUserByID(String id) {
+        Wrapper resp = sendAndWait(id, RequestType.GET_USER_INFO);
+        if(resp.getResponseType() != ResponseType.USER_INFO_SENT){
+        	if(resp.getResponseType() == ResponseType.USER_INFO_NOT_SENT) {
+        		return null;
+        	}
+        	while(resp != null && resp.getResponseType() != ResponseType.USER_INFO_SENT) {
+        		resp = waitForResponse();
+        	}
+        	if(resp == null) {
+        		return null;
+        	}
         }
+        return (User)resp.getPayload();
     }
     
     
@@ -176,8 +204,9 @@ public class ClientController implements ClientCalls {
     
     
     
-    public void getMessage(Message M) {
-    	
+    public void getMessage(Envelope E) {
+    	convo.addMessageToConversation(convo.getConversationAtIndex(convo.findConversationIndex(E.getID())), E.getMessage());
+    	loggedUser.addUnreadConversation(E.getID());
     }
     
     
@@ -290,7 +319,6 @@ public class ClientController implements ClientCalls {
         Conversation requestedConversation = (Conversation) resp.getPayload();
         convo.setCurrentLog(requestedConversation);
         return requestedConversation;
-        ;
     }
     
     
@@ -325,7 +353,7 @@ public class ClientController implements ClientCalls {
     
     
     public void getActiveUsers(ArrayList<User> Ar) {
-//    	ASK
+    	convo.addActiveUsers(Ar);
     }
     
     
@@ -352,13 +380,21 @@ public class ClientController implements ClientCalls {
         target.setLoginInfo(newUsername, newPassword);
         target.setName(newName);
         target.setPosition(newPosition);
+        return true;
     }
     
     
     
     
-    public void updateActiveUsers(User s) {
-    	
+    public void updateActiveUsers(Wrapper w) {
+    	if(w.getResponseType() == ResponseType.USER_LOGGED_IN) {
+    		User ActiveUser = (User)w.getPayload();
+    		convo.addActiveUser(ActiveUser);
+    	}
+    	else if(w.getResponseType() == ResponseType.USER_LOGGED_OUT) {
+    		User InactiveUser = (User)w.getPayload();
+    		convo.removeActiveUser(InactiveUser);
+    	}
     }
     
     
@@ -386,6 +422,11 @@ public class ClientController implements ClientCalls {
     }
     
     
+    
+    
+    public void changeGroupName(Conversation c) {
+    	
+    }
     
     
     @Override
@@ -417,20 +458,7 @@ public class ClientController implements ClientCalls {
     
     
     
-    
-    @Override
-    public User getUserByID(String id) {
-        Wrapper resp = sendAndWait(id, RequestType.GET_USER_INFO);
-        if (resp == null) return null;
-        if (resp.getResponseType() == ResponseType.USER_INFO_SENT) {
-            return (User) resp.getPayload();
-        }
-        return null;
-    }
-    
-    
-    
-    
+  
     @Override
     public ArrayList<User> searchUsers(String matching) {
         Wrapper resp = sendAndWait(matching, RequestType.GET_USER_INFO);
@@ -443,6 +471,9 @@ public class ClientController implements ClientCalls {
         return new ArrayList<>();
     }
 
+    
+    
+    
     @Override
     public void updateCurrentLog(String id) {
         convo.setCurrentLog(Integer.valueOf(id));
@@ -479,16 +510,6 @@ public class ClientController implements ClientCalls {
             return newResponse;
         }
     }
-    
-    private void handleIncomingConversation(Conversation c) {
-        if (c == null) return;
-        convo.addConversationToList(c);
-        if (updateListener != null) updateListener.onConversationReceived(c);
-    }
-
-    private void handleIncomingData(Object payload) {
-        if (updateListener != null) updateListener.onDataReceived(payload);
-    }
 
     public void deliverResponse(Wrapper newResponse) {
         synchronized (responseLock) {
@@ -496,16 +517,4 @@ public class ClientController implements ClientCalls {
             responseLock.notifyAll();
         }
     }
-
-    public void setUpdateListener(ClientUpdateListener listener) {
-        this.updateListener = listener;
-    }
-    
-
-
-//    public interface ClientUpdateListener {
-//        void onConversationReceived(Conversation c);
-//        void onDataReceived(Object payload);
-//        void onAck(ResponseType type, Object payload);
-//    }
 }
