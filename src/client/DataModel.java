@@ -17,8 +17,6 @@ public class DataModel {
 	//These have to be ListModels because they need to ping the GUI to update when they get updated
 	//List Models need to be updated on the EDT, either talk to me or look up how that has to be handled. 
 	private DefaultListModel<Conversation> conversationList;
-	//Something in logic should make sure this is updated whenever the currentConversation gets
-	//Messages added to it
 	private MessageListModel currentConversationMessageList;
 	private Map<String, User> userCache;
 	
