@@ -29,5 +29,12 @@ public enum ResponseType {
     
     
     //Riya
-    CONVERSATION_LOG_QUERY_RESULT, // TO send an ArrayList of conversations of a specific user that the user is asking about, the user who asked must be a IT user
+    CONVERSATION_LOG_QUERY_RESULT, // TO send an ArrayList of conversations of a specific user that the user is asking about, the user who asked must be a IT user, object is array list of conversations
+
+
+
+
+    //Just added after
+    USER_FOUND, USER_NOT_FOUND,//To inform user that the person they search for exits or not, object is User
+    LIST_OF_USERS_SIMILAR //To send an arrayList of matching users based on what the user sent. object is ArrayList of users
 }
