@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.swing.DefaultListModel;
 
+import GUI.ConversationListModel;
 import GUI.MessageListModel;
 import model.*;
 //Singleton Data Model for read by GUI and write by Client
@@ -14,7 +15,7 @@ public class DataModel {
 	//private data members for the model 
 	private User currentUser;
 	private Conversation currentConversation;
-	private DefaultListModel<Conversation> conversationList;
+	private ConversationListModel conversationList;
 	private MessageListModel currentConversationMessageList;
 	private Map<String, User> userCache;
 	
@@ -27,7 +28,7 @@ public class DataModel {
 	protected DataModel() {
 		logsList = new DefaultListModel<Conversation>();
 		currentLogMessageList = new MessageListModel();
-		conversationList = new DefaultListModel<Conversation>();
+		conversationList = new ConversationListModel();
 		currentConversationMessageList = new MessageListModel();
 		userCache = new HashMap<>();
 	}
@@ -41,7 +42,7 @@ public class DataModel {
 		return currentUser;
 	}
 	
-	public DefaultListModel<Conversation> getConversationList(){
+	public ConversationListModel getConversationList(){
 		return conversationList;
 	}
 	
@@ -50,10 +51,9 @@ public class DataModel {
 		addMessageToConversation(currentConversation, m);
 	}
 	
-	protected void addMessageToConversation(Conversation c, Message m) {
-		int index = conversationList.indexOf(c);
-		conversationList.get(index).addMessage(m);
-		conversationListSort();
+	public void addMessageToConversation(Conversation c, Message m) {
+		conversationList.get(c).addMessage(m);
+		conversationList.sortByRecentMessage();
 	}
 	
 	public MessageListModel getCurrentConversationMessageList(){
@@ -78,24 +78,14 @@ public class DataModel {
 	}
 
 	protected void addConversationToList(Conversation c) {
-		conversationList.add(conversationList.size(), c);
-		conversationListSort();
+		conversationList.add(conversationList.getSize(), c);
+		conversationList.sortByRecentMessage();
 	}
 	
-	private void conversationListSort() {
-		Conversation last = conversationList.get(conversationList.size() - 1);
-		for (int i = conversationList.size() - 2; i >= 0; i--) {
-			if (last.getMostRecentMessageTimestamp().isAfter(conversationList.get(i).getMostRecentMessageTimestamp())) {
-				conversationList.set(i+1, conversationList.get(i));
-				conversationList.set(i, last);
-			}
-			last = conversationList.get(i);
-		}
-	}
 	
 	protected void setCurrentConversation(int index) {
-		currentConversation = conversationList.elementAt(index);
-		currentConversationMessageList.setMessages(conversationList.elementAt(index).getMessages());
+		currentConversation = conversationList.getElementAt(index);
+		currentConversationMessageList.setMessages(conversationList.getElementAt(index).getMessages());
 	}
 	
 	protected void setCurrentLog(int index) {
