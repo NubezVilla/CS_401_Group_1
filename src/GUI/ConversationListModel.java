@@ -63,4 +63,14 @@ public class ConversationListModel extends AbstractListModel<Conversation> {
 		
 	}
 
+	public void removeAllElements() {
+		listModel.clear();
+		
+	}
+
+	public void addAll(ArrayList<Conversation> conversations) {
+		listModel.addAll(conversations);
+		
+	}
+
 }

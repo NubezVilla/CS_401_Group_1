@@ -51,7 +51,7 @@ public class DataModel {
 		addMessageToConversation(currentConversation, m);
 	}
 	
-	public void addMessageToConversation(Conversation c, Message m) {
+	protected void addMessageToConversation(Conversation c, Message m) {
 		conversationList.get(c).addMessage(m);
 		conversationList.sortByRecentMessage();
 	}
