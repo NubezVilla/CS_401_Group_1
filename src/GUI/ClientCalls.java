@@ -20,12 +20,12 @@ public interface ClientCalls {
 	 * @param password A string password
 	 * @return true if login succeeded, false if login failed
 	 */
-	public boolean loginAttempt(String username, String password);
+	public boolean loginAttempt(String username, String password);// DONE
 	
 	/**Informs the server that the user is logging out, then closes the connection
 	 * and logs out the user. Should send the server a copy of the current user for sync. 
 	 */
-	public void logoutAttempt();
+	public void logoutAttempt();//Should be similar to Login
 	
 	
 	/**For a given ID, returns the User associated with it. 
@@ -52,16 +52,34 @@ public interface ClientCalls {
 	 */
 	public void updateCurrentConversation(String id);
 	
+	
+	
+	
+	
+	
 	/**Fetches the next 200 messages from the conversation with the passed ID. 
 	 * Fetched messages should be placed in the conversation in DataModel's list.
 	 * @param id conversation to fetch messages from
 	 */
+	
+	//We don't need to fetchMessages, messages are all going to be sent at once
 	public void fetchMessages(String id);
+	
+	
+	
+	
+	
+	
 	/**Takes the paramter text, makes it into a message, adds it to the current conversation,
 	 * then passes it to the server. Server is responsible for updating unreadConversation list. 
 	 * @param text to be sent
 	 */
-	public void sendMessage(String text);
+	public void sendMessage(String text); //DONE
+	
+	
+	
+	
+	
 	
 	/** Updates target with the other four strings. 
 	 * Should inform the server of a change attempt first. 
@@ -82,12 +100,12 @@ public interface ClientCalls {
 	 * Server may return fail if login info is already taken. 
 	 * On fail, return false and do nothing. On success, return true and add the user to the local cache.
 	 */
-	public Boolean createNewUser(String name, String position, String username, String password);
+	public Boolean createNewUser(String name, String position, String username, String password); //DONE
 	
 	
 	/**Same as above, except for an IT user. 
 	 */
-	public Boolean createNewITUser(String name, String position, String username, String password);
+	public Boolean createNewITUser(String name, String position, String username, String password); //DONE
 	
 	/**Requests the server to start a new conversation with the current user.
 	 * <br>
@@ -138,7 +156,7 @@ public interface ClientCalls {
 	 * @param id to match against conversation logs
 	 * @return the list of all conversation headers whose IDs begin with the passed string
 	 */
-	public ArrayList<Conversation> queryConversationLogsByID(String id);
+	public ArrayList<Conversation> queryConversationLogsByID(String id); 
 	
 	/**Asks the server for the full conversation log (all info and messages) 
 	 * of the conversation with the passed id.
