@@ -7,7 +7,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -58,18 +57,18 @@ public class Client {
 			while(true) {
 				try {
 					Wrapper data = (Wrapper) objectListen.readObject();
-					Object load = data.getPayload();
-					
 					/* Based on what the wrapper gives back, we need to create a case statement for each case
 					Note to self: Ask what requestTypes should be used
 					So pipeline wise, it should look like below
 					Server sends data -> client recieves and breaks down data based on type -> clientController takes data and updates values 
 					*/
 					
-					switch(data.getRequestType()) {
-					case LOGIN:
+					switch(data.getResponseType()) {
+					case LOGIN_SUCCESS:
+						myClient.deliverResponse(data);
 						break;
-					case LOGOUT:
+					case LOGIN_FAIL:
+						myClient.deliverResponse(data);
 						return;
 					case GET_USER_INFO:
 						break;

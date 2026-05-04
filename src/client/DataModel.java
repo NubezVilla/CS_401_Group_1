@@ -1,4 +1,5 @@
 package client;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.DefaultListModel;
@@ -20,10 +21,19 @@ public class DataModel {
 	//Messages added to it
 	private MessageListModel currentConversationMessageList;
 	private Map<String, User> userCache;
+	
+	private User serverUser;
+	private Conversation reportsConversation;
+	private DefaultListModel<Conversation> logsList;
+	private Conversation currentLog;
+	private MessageListModel currentLogMessageList;
 
 	protected DataModel() {
+		logsList = new DefaultListModel<Conversation>();
+		currentLogMessageList = new MessageListModel();
 		conversationList = new DefaultListModel<Conversation>();
 		currentConversationMessageList = new MessageListModel();
+		userCache = new HashMap<>();
 	}
 	//Global access handle
 	public static synchronized DataModel getInstance() {
@@ -57,11 +67,18 @@ public class DataModel {
 	//DEBUG: Hardcoded for gui testing purposes
 	public void setConversationList() {
 		User other1 =  new User();
+		other1.setName("Tom Scott");
 		User other2 =  new User();
+		other2.setName("Victor Orban");
 		User other3 =  new User();
+		other3.setName("Daniel Adams");
+		DataModel.getInstance().addUserToCache(other1);
+		DataModel.getInstance().addUserToCache(other2);
+		DataModel.getInstance().addUserToCache(other3);
 		Conversation a = new Conversation(currentUser.getUserID(), other1.getUserID());
 		Conversation b = new Conversation(currentUser.getUserID(), other2.getUserID());
 		Conversation c = new Conversation(currentUser.getUserID(), other3.getUserID());
+		GroupConversation d = new GroupConversation(c, currentUser.getUserID());
 		a.addMessage(new Message("Hello", currentUser.getUserID()));
 		a.addMessage(new Message("Hewwo", other1.getUserID()));
 		b.addMessage(new Message("You're a bad man", currentUser.getUserID()));
@@ -71,7 +88,12 @@ public class DataModel {
 		conversationList.add(0, a);
 		conversationList.add(1, b);
 		conversationList.add(2, c);
+		conversationList.add(3, d);
 		
+	}
+	//DEBUG: Public for GUI Testing
+	public void addConversationToList(Conversation c) {
+		conversationList.add(conversationList.size(), c);
 	}
 	//DEBUG: Public for GUI Testing 
 	public void setCurrentConversation(int index) {
@@ -79,9 +101,62 @@ public class DataModel {
 		currentConversationMessageList.setMessages(conversationList.elementAt(index).getMessages());
 	}
 	
+	//DEBUG: Public for GUI Testing 
+	public void setCurrentLog(int index) {
+		currentLog = logsList.elementAt(index);
+		currentLogMessageList.setMessages(logsList.elementAt(index).getMessages());
+	}
+	
+	public DefaultListModel<Conversation> getLogsList(){
+		return logsList;
+	}
+	
+	//DEBUG: Public for GUI Testing
+	public void addLogToList(Conversation c) {
+		logsList.add(logsList.size(), c);
+	}
+	
+	public MessageListModel getCurrentLogMessageList() {
+		return currentLogMessageList;
+	}
+	
+	public Conversation getCurrentLog() {
+		return currentLog;
+	}
+	
+	public void emptyCurrentConversation() {
+		currentConversation = null;
+	}
+	
 	//DEBUG: Hardcoded for GUI Testing 
-	public void addUserToCache() {
-		userCache = DEBUGUserGenerator.generateUsers(1000);
+	public void addUserToCache(User u) {
+		if (u != null) {
+			userCache.put(u.getUserID(), u);
+		}
+		else {
+			userCache.putAll(DEBUGUserGenerator.generateUsers(1000));
+		}
+		
+	}
+	
+	public User getServerUser() {
+		return serverUser;
+	}
+	
+	//DEBUG: Public for GUI Testing
+	//Should be called once on login
+	public void setServerUser(User u) {
+		serverUser = u;
+	}
+	
+	public Conversation getReportsConversation() {
+		return reportsConversation;
+	}
+	
+	//DEBUG: Public for GUI Testing
+	//SHould be called once on login
+	public void setReportsConversation(Conversation c) {
+		reportsConversation = c;
 	}
 	
 }
