@@ -57,7 +57,13 @@ public class MessageHandler {
 		else {
 			messageToSend = (Message) obj.getPayload();
 		}
-		logQueue.add(messageToSend); //THIS LOG MUST BE SAVED TO DISK BEFORE LOGOUT
+		logQueue.add(messageToSend); 
+		// Auto-save logs when queue reaches threshold
+		if (logQueue.size() >= 10) {
+		    Server.saveLogQueue(senderID, logQueue);
+		    logQueue.clear();
+		} 
+		//THIS LOG MUST BE SAVED TO DISK BEFORE LOGOUT
 		
 		/* Search the ConversationList in UserData to find the conversation
 		 * that the user is a part of.

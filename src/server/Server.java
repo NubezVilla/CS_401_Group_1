@@ -29,8 +29,12 @@ public class Server {
 		 */
 		userDataHandle = new UserData();
 		fileManagerHandle = new FileManager();
-		//fileManagerHandle.loadData(userDataHandle);
 		
+		try {
+		    fileManagerHandle.loadData(userDataHandle);
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
 
 		
 		
