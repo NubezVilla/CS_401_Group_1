@@ -21,6 +21,8 @@ import javax.swing.JTextField;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
 import client.DataModel;
 import model.*;
@@ -58,6 +60,36 @@ public class ConversationListPanel extends JPanel {
 		
 		conversationList = new JList<Conversation>(DataModel.getInstance().getConversationList());
 		conversationList.setCellRenderer(new ConversationListCellRenderer(client));
+		
+		DataModel.getInstance().getConversationList().addListDataListener(new ListDataListener() {
+		    private String selectedId;
+
+		    private void rememberSelection() {
+		        Conversation selected = conversationList.getSelectedValue();
+		        selectedId = selected == null ? null : selected.getID();
+		    }
+
+		    private void restoreSelection() {
+		        if (selectedId == null) return;
+
+		        for (int i = 0; i < DataModel.getInstance().getConversationList().getSize(); i++) {
+		            Conversation c = DataModel.getInstance().getConversationList().getElementAt(i);
+		            if (c.getID().equals(selectedId)) {
+		                conversationList.setSelectedIndex(i);
+		                conversationList.ensureIndexIsVisible(i);
+		                break;
+		            }
+		        }
+		    }
+
+		    @Override
+		    public void contentsChanged(ListDataEvent e) {
+		        restoreSelection();
+		    }
+
+		    @Override public void intervalAdded(ListDataEvent e) {}
+		    @Override public void intervalRemoved(ListDataEvent e) {}
+		});
 		conversationList.addListSelectionListener(e -> {
 			if (!conversationList.isSelectionEmpty()) {
 				client.updateCurrentConversation(conversationList.getSelectedValue().getID());
@@ -142,8 +174,8 @@ public class ConversationListPanel extends JPanel {
 		JPanel toReturn = new JPanel();
 		DefaultListModel<Conversation> conversationModel = new DefaultListModel<Conversation>(); 
 		for (int i = 0; i < DataModel.getInstance().getConversationList().getSize(); i++) {
-			if (parseConversationName(DataModel.getInstance().getConversationList().get(i)).contains(term)){
-				conversationModel.addElement(DataModel.getInstance().getConversationList().get(i));
+			if (parseConversationName(DataModel.getInstance().getConversationList().getElementAt(i)).contains(term)){
+				conversationModel.addElement(DataModel.getInstance().getConversationList().getElementAt(i));
 			}
 		}
 		if (conversationModel.getSize() == 0) {
