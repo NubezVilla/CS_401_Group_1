@@ -256,11 +256,7 @@ public class ClientController implements ClientCalls {
 
     @Override
     public void updateCurrentLog(String id) {
-        Conversation log = requestConversationLogById(id);
-        if (log != null) {
-            convo.addLog(log);
-            convo.setCurrentLog(log);
-        }
+        convo.setCurrentLog(Integer.valueOf(id));
     }
 
     // ---------- Reader-side delivery ----------
