@@ -70,7 +70,7 @@ public class MessageHandlerTest {
     }
 
    
-    /*** BEGIN TESTING ***/
+    /*** TESTING SENDING MESSAGE ***/
     @Test
     public void testHandleSendMessage_OfflineRecipient_Success() {
         //create a message to send and wrap it

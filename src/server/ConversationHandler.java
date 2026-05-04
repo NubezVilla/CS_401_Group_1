@@ -9,7 +9,8 @@ import model.Message;
 import model.RequestType;
 import model.ResponseType;
 import model.User;
-import model.Wrapper;
+import model.Wrapper; 
+import server.Broadcast;
 
 public class ConversationHandler {
 
@@ -79,7 +80,8 @@ public class ConversationHandler {
 		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.SENDING_DATA);
 		boolean conversationSent = responseHandle.sendWithRetry(sendConversation, ResponseType.DATA_RECEIVED);
 	    if(!conversationSent) {
-	    	sendResponse(new Message("CONVERATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
+	    	sendResponse(new Message("CONVERSATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
+	    	return;
 	    }
 		//send confirmation that everything was sent
 		sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
@@ -103,7 +105,8 @@ public class ConversationHandler {
             return;
         }
 		
-		Conversation currentConversation = Server.getConversation(activeConversationID);
+		Conversation currentConversation = Server.getConversation(activeConversationID); 
+		
 		if (currentConversation == null) {
             sendResponse(new Message("CONVERSATION NOT FOUND", "Server"), ResponseType.ADD_PARTICIPANT_FAIL);
             return;
@@ -130,7 +133,11 @@ public class ConversationHandler {
 		currentConversation.addParticipant(userToAddID);
 
 		// Update the canonical server-side User object
-		userToAdd.getConversations().add(activeConversationID);
+		userToAdd.getConversations().add(activeConversationID); 
+		
+		// Save the updated conversation so participant changes are persisted
+		Server.saveConversation(currentConversation);
+		Server.saveUserData(userToAdd);
 
 		// If the added user is online, send them the updated conversation
 		ClientHandler addedUserHandler = Server.getActiveClient(userToAddID);
@@ -192,8 +199,7 @@ public class ConversationHandler {
             return;
         }
 	    
-	    Broadcast broadcast = new Broadcast();
-		broadcast.broadcastParticipantRemoved(activeConversationID, removingUser, currentUserID);
+	  
 	    //remove from the conversation
 	    //this should be holding a reference to the object in the Map
 	    //so it can change the contents inside the map
@@ -203,7 +209,15 @@ public class ConversationHandler {
 	    removingUser.getConversations().remove(activeConversationID);
 
 	    //also remove from unread list if present
-	    removingUser.getUnreadConversations().remove(activeConversationID);
+	    removingUser.getUnreadConversations().remove(activeConversationID); 
+	    
+	    // Persist updated conversation and user data
+	    Server.saveConversation(activeConversation);
+	    Server.saveUserData(removingUser); 
+	    
+	    // Notify affected online clients
+	    Broadcast broadcast = new Broadcast();
+	    broadcast.broadcastParticipantRemoved(activeConversationID, removingUser, currentUserID);
 	    
 	    sendResponse(new Message("REMOVING PARTICIPANT", "Server"), ResponseType.REMOVE_PARTICIPANT_SUCCESS);
 		
