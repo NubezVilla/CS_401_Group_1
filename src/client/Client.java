@@ -35,14 +35,9 @@ public class Client {
 	    runnerThread.join();
 	    try { socket.close(); } catch (IOException ignored) {}
 	}
-
-
-	/**
-	 * Reads Wrapper objects off the socket and hands every one to the
-	 * ClientController. The controller is the single point of dispatch — it
-	 * decides whether the incoming Wrapper is a reply to a sendAndWait call,
-	 * a server-initiated push, or a status indicator.
-	 */
+	
+	
+	
 	private static class ClientListener implements Runnable {
 	    private final Socket clientSocket;
 	    private final ObjectInputStream objectListen;
@@ -84,11 +79,6 @@ public class Client {
 	}
 
 
-	/**
-	 * Drains the outbound queue and writes Wrappers to the socket. Both
-	 * fire-and-forget sends and the request half of request/response flows
-	 * go through here via send().
-	 */
 	public static class ClientRunner implements Runnable {
 	    private final Socket clientSocket;
 	    private final ObjectOutputStream objectRun;
