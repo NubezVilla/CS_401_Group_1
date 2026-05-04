@@ -11,7 +11,7 @@ public interface ClientCalls {
 	 * @return true if the connection succeeded, false if it did not
 	 */
 	
-	public boolean connectionAttempt(String ip); 
+	//public boolean connectionAttempt(String ip); 
 	
 	/**Passes a un and pw to the client for a login attempt
 	 * <p>
@@ -51,24 +51,6 @@ public interface ClientCalls {
 	 * @param id the id of the new current conversation
 	 */
 	public void updateCurrentConversation(String id);
-	
-	
-	
-	
-	
-	
-	/**Fetches the next 200 messages from the conversation with the passed ID. 
-	 * Fetched messages should be placed in the conversation in DataModel's list.
-	 * @param id conversation to fetch messages from
-	 */
-	
-	//We don't need to fetchMessages, messages are all going to be sent at once
-	public void fetchMessages(String id);
-	
-	
-	
-	
-	
 	
 	/**Takes the paramter text, makes it into a message, adds it to the current conversation,
 	 * then passes it to the server. Server is responsible for updating unreadConversation list. 
