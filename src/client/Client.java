@@ -2,10 +2,8 @@ package client;
 import model.*;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,147 +16,118 @@ public class Client {
 	private static int timeOut = 30;
 	private static ClientController client;
 	public static BlockingQueue<Wrapper> wrappedObjects;
-	
-	public static void main(String[] args) throws Exception {
-		// This is to establish a connection to the server first
-		try(Socket socket = new Socket(address, port)){
-			wrappedObjects = new LinkedBlockingQueue<>();
-			isConnected = !isConnected;
-			ClientListener listener = new ClientListener(socket, client);
-			new Thread(listener).start();
-			ClientRunner runner = new ClientRunner(socket, wrappedObjects);
-			client = new ClientController(runner);
-			new Thread(runner).start();
-		}
-	}
-	
-	private static class ClientListener implements Runnable{
-		private final Socket clientSocket;
-		private ClientController myClient;
-		
-		public ClientListener(Socket sock, ClientController client) {
-			clientSocket = sock;
-			myClient = client;
-		}
 
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			
-			// We create an ObjectInputStream to listen for any oncoming data
-			InputStream listen = null;
-			ObjectInputStream objectListen = null;
-			try {
-				listen = clientSocket.getInputStream();
-				objectListen = new ObjectInputStream(listen);
-			} catch (IOException e){
-				e.printStackTrace();
-			}
-			while(true) {
-				try {
-					Wrapper data = (Wrapper) objectListen.readObject();
-					/* Based on what the wrapper gives back, we need to create a case statement for each case
-					Note to self: Ask what requestTypes should be used
-					So pipeline wise, it should look like below
-					Server sends data -> client recieves and breaks down data based on type -> clientController takes data and updates values 
-					*/
-					
-					switch(data.getResponseType()) {
-					case LOGIN_SUCCESS:
-						myClient.deliverResponse(data);
-						break;
-					case LOGIN_FAIL:
-						myClient.deliverResponse(data);
-						return;
-					case GET_USER_INFO:
-						break;
-					case CREATE_CONVERSATION:
-						break;
-					case CREATE_GROUP_CONVERSATION:
-						break;
-					case GET_CONVERSATION:
-						break;
-					case ADD_PARTICIPANT:
-						break;
-					case REMOVE_PARTICIPANT:
-						break;
-					case GET_MESSAGES:
-						break;
-					case GET_NEW_MESSAGES:
-						break;
-					default:
-						break;
-					}
-				} catch (IOException e) {
-					if(clientSocket.isClosed()) {
-						System.out.println("Client has closed connection");
-					}
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				} finally {
-					try {
-						clientSocket.close();
-					} catch(IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			
-		}
+	public static void main(String[] args) throws Exception {
+		Socket socket = new Socket(address, port);
+	    isConnected = true;
+	    wrappedObjects = new LinkedBlockingQueue<>();
+	    ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+	    out.flush();
+	    ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+	    ClientRunner runner = new ClientRunner(socket, out, wrappedObjects);
+	    client = new ClientController(runner);
+	    ClientListener listener = new ClientListener(socket, in, client);
+	    Thread listenerThread = new Thread(listener, "ClientListener");
+	    Thread runnerThread = new Thread(runner, "ClientRunner");
+	    listenerThread.start();
+	    runnerThread.start();
+	    listenerThread.join();
+	    runnerThread.join();
+	    try { socket.close(); } catch (IOException ignored) {}
 	}
-	
-	
-	public static class ClientRunner implements Runnable{
-		private final Socket clientSocket;
-		private final BlockingQueue<Wrapper> queue;
-		private OutputStream run;
-		private ObjectOutputStream objectRun;
-		
-		public ClientRunner(Socket sock, BlockingQueue<Wrapper> wrappedObjects) {
-			clientSocket = sock;
-			queue = wrappedObjects;
-			try {
-				run = clientSocket.getOutputStream();
-				objectRun = new ObjectOutputStream(run);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			try {
-				while(true) {		//Change true to a value that would go false when the server sends a successfull logout message
-					Wrapper object = null;
-						object = queue.take();
-						objectRun.writeObject(object);
-				}
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				try { objectRun.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		
-		public void send(Object thisObject, RequestType ID) {
-			Wrapper newData = new Wrapper(thisObject, ID);
-			try {
-				queue.put(newData);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
+
+
+	/**
+	 * Reads Wrapper objects off the socket and hands every one to the
+	 * ClientController. The controller is the single point of dispatch — it
+	 * decides whether the incoming Wrapper is a reply to a sendAndWait call,
+	 * a server-initiated push, or a status indicator.
+	 */
+	private static class ClientListener implements Runnable {
+	    private final Socket clientSocket;
+	    private final ObjectInputStream objectListen;
+	    private final ClientController myClient;
+
+	    public ClientListener(Socket sock, ObjectInputStream in, ClientController controller) {
+	        this.clientSocket = sock;
+	        this.objectListen = in;
+	        this.myClient = controller;
+	    }
+
+	    @Override
+	    public void run() {
+	        try {
+	            while (true) {
+	                Wrapper data;
+	                try {
+	                    data = (Wrapper) objectListen.readObject();
+	                } catch (IOException e) {
+	                    if (clientSocket.isClosed()) {
+	                        System.out.println("Client has closed connection");
+	                    } else {
+	                        e.printStackTrace();
+	                    }
+	                    return;
+	                } catch (ClassNotFoundException e) {
+	                    e.printStackTrace();
+	                    continue;
+	                }
+
+	                myClient.handleIncoming(data);
+	            }
+	        } finally {
+	            try { clientSocket.close(); } catch (IOException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	    }
 	}
-	
-	
-	
-	
-	
+
+
+	/**
+	 * Drains the outbound queue and writes Wrappers to the socket. Both
+	 * fire-and-forget sends and the request half of request/response flows
+	 * go through here via send().
+	 */
+	public static class ClientRunner implements Runnable {
+	    private final Socket clientSocket;
+	    private final ObjectOutputStream objectRun;
+	    private final BlockingQueue<Wrapper> queue;
+
+	    public ClientRunner(Socket sock, ObjectOutputStream out,
+	                        BlockingQueue<Wrapper> wrappedObjects) {
+	        this.clientSocket = sock;
+	        this.objectRun = out;
+	        this.queue = wrappedObjects;
+	    }
+
+	    @Override
+	    public void run() {
+	        try {
+	            while (!clientSocket.isClosed()) {
+	                Wrapper object = queue.take();
+	                objectRun.writeObject(object);
+	                objectRun.flush();
+	                objectRun.reset();
+	            }
+	        } catch (InterruptedException e) {
+	            Thread.currentThread().interrupt();
+	        } catch (IOException e) {
+	            if (!clientSocket.isClosed()) e.printStackTrace();
+	        } finally {
+	            try { objectRun.close(); } catch (IOException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	    }
+
+	    public void send(Object thisObject, RequestType ID) {
+	        Wrapper newData = new Wrapper(thisObject, ID);
+	        try {
+	            queue.put(newData);
+	        } catch (InterruptedException e) {
+	            Thread.currentThread().interrupt();
+	        }
+	    }
+	}
 }
