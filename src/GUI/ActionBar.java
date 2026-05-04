@@ -10,6 +10,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -137,7 +138,7 @@ public class ActionBar extends JPanel {
 		
 	}
 	private void doCreateNewUser() {
-		JDialog userInfoPane = new JDialog((Frame)null, "Change User Info", true);
+		JDialog userInfoPane = new JDialog((Frame)null, "Create User", true);
 		userInfoPane.setLayout(new GridBagLayout());
 		userInfoPane.setLocationRelativeTo(createNewUser);
 		userInfoPane.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -146,10 +147,12 @@ public class ActionBar extends JPanel {
 		JLabel positionLabel = new JLabel("Position:");
 		JLabel usernameLabel = new JLabel("Username:");
 		JLabel passwordLabel = new JLabel("Password:");
+		JLabel itUserLabel = new JLabel("IT User?");
 		JTextField nameField = new HintTextField("Name (Optional)");
 		JTextField positionField = new HintTextField("Position (Optional)");
 		JTextField usernameField = new HintTextField("Username (Required)");
 		JTextField passwordField = new HintTextField("Password (Required)");
+		JCheckBox itUserField = new JCheckBox();
 		
 		JButton cancel = new JButton("Cancel");
 		cancel.addActionListener(e ->{
@@ -157,17 +160,33 @@ public class ActionBar extends JPanel {
 		});
 		JButton confirm = new JButton("Confirm");
 		confirm.addActionListener(e-> {
-			if (client.createNewUser(nameField.getText(), positionField.getText(), usernameField.getText(), passwordField.getText())) {
+			if (itUserField.isSelected()) {
+				if (client.createNewITUser(nameField.getText(), positionField.getText(), usernameField.getText(), passwordField.getText())) {
 				JOptionPane.showMessageDialog(userInfoPane, "User Successfully Created", "Creation Success", JOptionPane.INFORMATION_MESSAGE);
 				userInfoPane.dispose();
+				}
+				else {
+					JLabel badInfo = new JLabel("<html>Username and Password already taken."
+							+ "<br>Please try again with different login information.");
+					badInfo.setFont(Fonts.error);
+					badInfo.setForeground(Color.red);
+					JOptionPane.showMessageDialog(userInfoPane, badInfo, "Creation Failed", JOptionPane.ERROR_MESSAGE);
+				}
 			}
 			else {
-				JLabel badInfo = new JLabel("<html>Username and Password already taken."
-						+ "<br>Please try again with different login information.");
-				badInfo.setFont(Fonts.error);
-				badInfo.setForeground(Color.red);
-				JOptionPane.showMessageDialog(userInfoPane, badInfo, "Creation Failed", JOptionPane.ERROR_MESSAGE);
+				if (client.createNewUser(nameField.getText(), positionField.getText(), usernameField.getText(), passwordField.getText())) {
+					JOptionPane.showMessageDialog(userInfoPane, "User Successfully Created", "Creation Success", JOptionPane.INFORMATION_MESSAGE);
+					userInfoPane.dispose();
+					}
+					else {
+						JLabel badInfo = new JLabel("<html>Username and Password already taken."
+								+ "<br>Please try again with different login information.");
+						badInfo.setFont(Fonts.error);
+						badInfo.setForeground(Color.red);
+						JOptionPane.showMessageDialog(userInfoPane, badInfo, "Creation Failed", JOptionPane.ERROR_MESSAGE);
+					}
 			}
+			
 		});
 		
 		c.gridx = 0;
@@ -183,6 +202,8 @@ public class ActionBar extends JPanel {
 		c.gridy = 3;
 		userInfoPane.add(passwordLabel, c);
 		c.gridy = 4;
+		userInfoPane.add(itUserLabel, c);
+		c.gridy = 5;
 		userInfoPane.add(cancel, c);
 		c.gridy = 0;
 		c.gridx = 1;
@@ -195,6 +216,8 @@ public class ActionBar extends JPanel {
 		c.gridy = 3;
 		userInfoPane.add(passwordField, c);
 		c.gridy = 4;
+		userInfoPane.add(itUserField, c);
+		c.gridy = 5;
 		c.gridx = 2;
 		c.gridwidth = 1;
 		userInfoPane.add(confirm, c);

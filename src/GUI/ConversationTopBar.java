@@ -36,7 +36,6 @@ public class ConversationTopBar extends JPanel {
 	private JPopupMenu removeParticipantsMenu;
 	private ClientCalls client;
 	private Runnable refreshMainPage;
-	//TODO add add and remove listeners/actions
 	public ConversationTopBar(ClientCalls c, Runnable r) {
 		client = c;
 		refreshMainPage = r;
