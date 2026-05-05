@@ -61,7 +61,7 @@ public class ConnectionScreen extends JDialog{
 			        String ip = (String) selection.getSelectedItem();
 
 			        if ("School".equals(ip)) {
-			            ip = "PLACEHOLDER";
+			            ip = "134.154.32.195";
 			        } else if ("Home".equals(ip)) {
 			            ip = "10.0.0.165";
 			        } else if ("Coffee Shop".equals(ip)) {
