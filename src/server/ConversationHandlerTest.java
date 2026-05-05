@@ -190,6 +190,69 @@ public class ConversationHandlerTest {
         }, "Handler should successfully send conversation and read the ACK without throwing exceptions.");
     }
     
-    
+    @Test
+    public void testHandleCreateConversation_Success() {
+        UserData mockDatabase = new UserData();
+
+        User currentUser = new User("current", "pass");
+        User otherUser = new User("other", "pass");
+
+        mockDatabase.addUser(currentUser);
+        mockDatabase.addUser(otherUser);
+
+        Server.setTestUserData(mockDatabase);
+
+        FileManager dummyFileManager = new FileManager() {
+            @Override
+            public synchronized void saveConversation(Conversation conversation) {}
+
+            @Override
+            public synchronized void saveUser(User user) {}
+        };
+        Server.setTestFileManager(dummyFileManager);
+
+        Wrapper request = new Wrapper(otherUser, RequestType.CREATE_CONVERSATION);
+
+        conversationHandler.handleCreateConversation(request, currentUser.getUserID());
+
+        assertFalse(currentUser.getConversations().isEmpty());
+        assertFalse(otherUser.getConversations().isEmpty());
+    } 
+    @Test
+    public void testHandleCreateGroupConversation_Success() {
+        UserData mockDatabase = new UserData();
+
+        User creator = new User("creator", "pass");
+        User member = new User("member", "pass");
+
+        mockDatabase.addUser(creator);
+        mockDatabase.addUser(member);
+
+        Server.setTestUserData(mockDatabase);
+
+        FileManager dummyFileManager = new FileManager() {
+            @Override
+            public synchronized void saveConversation(Conversation conversation) {}
+
+            @Override
+            public synchronized void saveUser(User user) {}
+        };
+        Server.setTestFileManager(dummyFileManager);
+
+        Conversation base = new Conversation();
+        base.addParticipant(creator.getUserID());
+        base.addParticipant(member.getUserID());
+
+        GroupConversation group = new GroupConversation(base, creator.getUserID());
+        group.setName("Test Group");
+
+        Wrapper request = new Wrapper(group, RequestType.CREATE_GROUP_CONVERSATION);
+
+        conversationHandler.handleCreateGroupConversation(out, request, creator.getUserID());
+
+        assertNotNull(Server.getConversation(group.getID()));
+        assertTrue(creator.getConversations().contains(group.getID()));
+        assertTrue(member.getConversations().contains(group.getID()));
+    }
     
 }
