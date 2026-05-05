@@ -170,6 +170,13 @@ public class DataModel {
 		return conversationList.getElementAt(idx);
 	}
 	
+	public GroupConversation getGroupConversationAtIndex(int idx) {
+		if(conversationList.getElementAt(idx) instanceof GroupConversation) {
+			return conversationList.getGroupAt(idx);
+		}
+		return null;
+	}
+	
 	public void removeActiveUser(User U) {
 		ActiveUser.remove(U);
 	}
