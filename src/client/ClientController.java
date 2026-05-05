@@ -47,6 +47,7 @@ public class ClientController implements ClientCalls {
             	break;
             case GROUP_NAME_CHANGED:
             	changeGroupName((GroupConversation) data.getPayload());
+            	break;
             case SENDING_CONVERSATIONS:
             	Object conversations = data.getPayload();
             	if(conversations instanceof ArrayList<?> list) {
@@ -70,10 +71,13 @@ public class ClientController implements ClientCalls {
             		}
             		getActiveUsers(result);
             	}
+            	break;
             case USER_LOGGED_IN, USER_LOGGED_OUT:
             	updateActiveUsers(data);
+            	break;
             case PARTICIPANT_ADDED, PARTICIPANT_REMOVED:
             	groupConversationParticipantChanged(data);
+            	break;
             default:
                 System.out.println("Unhandled response type: " + data.getResponseType());
                 break;
@@ -489,7 +493,7 @@ public class ClientController implements ClientCalls {
     public void updateCurrentLog(String id) {
     	Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
         if(resp.getResponseType() != ResponseType.CONVERSATION_SENT){
-        	if(resp.getResponseType() == ResponseType.CONVERSATION_SENT) {
+        	if(resp.getResponseType() == ResponseType.CONVERSATION_NOT_SENT) {
         		return ;
         	}
         	while(resp != null && resp.getResponseType() != ResponseType.CONVERSATION_SENT) {
