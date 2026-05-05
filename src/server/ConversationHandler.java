@@ -138,14 +138,17 @@ public class ConversationHandler {
 			return;
 		}
 		//send the Conversation to the IT user
-		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.SENDING_DATA);
+		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.CONVERSATION_SENT);
+		//send the payload
+		sendPayload(sendConversation);
+		/*
 		boolean conversationSent = responseHandle.sendWithRetry(sendConversation, ResponseType.DATA_RECEIVED);
 	    if(!conversationSent) {
 	    	sendResponse(new Message("CONVERSATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
 	    	return;
-	    }
+	    } */
 		//send confirmation that everything was sent
-		sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
+		//sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
 	}
 	
 	void handleAddParticipant(Wrapper obj, String activeConversationID, String currentUserID) {
@@ -193,7 +196,7 @@ public class ConversationHandler {
 		// Add the user to the conversation
 		currentConversation.addParticipant(userToAddID);
 
-		// Update the canonical server-side User object
+		// Update the server-side User object
 		userToAdd.getConversations().add(activeConversationID); 
 		
 		// Save the updated conversation so participant changes are persisted
@@ -204,7 +207,7 @@ public class ConversationHandler {
 		ClientHandler addedUserHandler = Server.getActiveClient(userToAddID);
 		if (addedUserHandler != null) {
 			try {
-				addedUserHandler.sendToClient(new Wrapper(currentConversation, ResponseType.SENDING_DATA));
+				addedUserHandler.sendToClient(new Wrapper(currentConversation, ResponseType.CONVERSATION_SENT));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -272,11 +275,11 @@ public class ConversationHandler {
 	    //also remove from unread list if present
 	    removingUser.getUnreadConversations().remove(activeConversationID); 
 	    
-	    // Persist updated conversation and user data
+	    //update conversation and user data
 	    Server.saveConversation(activeConversation);
 	    Server.saveUserData(removingUser); 
 	    
-	    // Notify affected online clients
+	    //notify affected online clients
 	    Broadcast broadcast = new Broadcast();
 	    broadcast.broadcastParticipantRemoved(activeConversationID, removingUser, currentUserID);
 	    

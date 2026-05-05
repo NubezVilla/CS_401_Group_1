@@ -23,9 +23,6 @@ public class LogMessagePanel extends JPanel {
 	public void refresh() {
 		removeAll();
 		add(Box.createVerticalGlue());
-		if (DataModel.getInstance().getCurrentLogMessageList().getMessages().size() < 200) {
-			client.fetchMessages(DataModel.getInstance().getCurrentLog().getID());
-		}
 		
 		for (Message m : DataModel.getInstance().getCurrentLogMessageList().getMessages()) {
 			add(new MessageDisplayComponent(m, client));

@@ -7,6 +7,7 @@ public class LoginInfo implements Serializable {
 	private String username;
 	private String password;
 	
+	
 	public LoginInfo(String un, String pw){
 		username = un;
 		password = pw;
@@ -31,5 +32,25 @@ public class LoginInfo implements Serializable {
 	
 	public String getPassword() {
 		return password;
+	}
+	
+//	Added
+	private String name;
+	private String position;
+	
+	public void setName(String n) {
+		name = n;
+	}
+	
+	public void setPosition(String p) {
+		position = p;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public String getPosition() {
+		return position;
 	}
 }

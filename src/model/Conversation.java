@@ -76,4 +76,12 @@ public class Conversation implements Serializable {
 		messages.add(m);
 		mostRecentMessage = m.getTimestamp();
 	}
+	
+	public void clearParticipants() {
+		participantIDs.clear();
+	}
+	
+	public void addParticipants(HashSet<String> newParticipants) {
+		participantIDs.addAll(newParticipants);
+	}
 }

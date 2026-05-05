@@ -159,8 +159,9 @@ public class ClientHandler implements Runnable {
 			            messageHandle.handleSendMessage(receivedObject, logQueue, activeConversationID, userAccount.getUserID());
 			            break;
 		
+			            /*** DISCUSS WITH GROUP REGARDING GET_MESSAGES AND GET_NEW_MESSAGES ***/
 			        //Riya    
-			        case GET_MESSAGES:
+			       /* case GET_MESSAGES:
 			            System.out.println("Getting messages");
 			            messageHandle.handleGetMessages(out, receivedObject);
 			            break;
@@ -170,7 +171,7 @@ public class ClientHandler implements Runnable {
 			            System.out.println("Getting new messages");
 			            messageHandle.handleGetNewMessages(out, receivedObject);
 			            break;
-			            
+			        */ 
 			        //Alejandro
 			        case UPDATE_ACTIVE_CONVERSATION:
 			        	System.out.println("Updating active conversation");

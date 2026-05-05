@@ -67,6 +67,10 @@ public class Server {
 	    return activeUserList;
 	}
 	
+	public static ArrayList<String> getActiveUserIDs() {
+	    return new ArrayList<>(activeUserList.keySet());
+	}
+	
 	/*** FileManager class methods ***/
 	public static void saveUserData(User user) {
 		//save the user data to disk with the FileManager
