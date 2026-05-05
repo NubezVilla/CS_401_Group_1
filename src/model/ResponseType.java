@@ -36,4 +36,5 @@ public enum ResponseType {
 
     //Just added after
     LIST_OF_USERS_SIMILAR //To send an arrayList of matching users based on what the user sent. object is ArrayList of users
+, CONVERSATION_LOG_NOT_SENT, CONVERSATION_LOG_SENT
 }

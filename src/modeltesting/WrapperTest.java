@@ -23,11 +23,11 @@ class WrapperTest {
     void requestTypeCanBeAnyEnumValue() {
         Wrapper wrapper1 = new Wrapper("data1", RequestType.REGISTER);
         Wrapper wrapper2 = new Wrapper("data2", RequestType.SEND_MESSAGE);
-        Wrapper wrapper3 = new Wrapper("data3", RequestType.GET_MESSAGES);
+        Wrapper wrapper3 = new Wrapper("data3", RequestType.UPDATE_USER_INFO);
 
         assertEquals(RequestType.REGISTER, wrapper1.getRequestType());
         assertEquals(RequestType.SEND_MESSAGE, wrapper2.getRequestType());
-        assertEquals(RequestType.GET_MESSAGES, wrapper3.getRequestType());
+        assertEquals(RequestType.UPDATE_USER_INFO, wrapper3.getRequestType());
     }
 
     @Test

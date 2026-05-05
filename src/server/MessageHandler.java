@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import model.Conversation;
+import model.Envelope;
 import model.Message;
 import model.RequestType;
 import model.ResponseType;
@@ -100,12 +101,12 @@ public class MessageHandler {
 		 */
 		Message messageToSend = null;
 
-		if (!(obj.getPayload() instanceof Message)) {
+		if (!(obj.getPayload() instanceof String)) {
 			sendResponse(new Message("INVALID PAYLOAD: MESSAGE", "Server"), ResponseType.MESSAGE_NOT_SENT);
 	        return;
 		}
 		else {
-			messageToSend = (Message) obj.getPayload();
+			messageToSend = new Message((String)obj.getPayload(), senderID);
 		}
 		logQueue.add(messageToSend); 
 		// Auto-save logs when queue reaches threshold
@@ -170,13 +171,14 @@ public class MessageHandler {
           
 			//get their socket to write to
             try {
-				handler.sendToClient(new Wrapper(messageToSend, ResponseType.SENDING_MESSAGE));
+            		Envelope messageAndConvoID = new Envelope(messageToSend, activeConversationID);
+				handler.sendToClient(new Wrapper(messageAndConvoID, ResponseType.SENDING_MESSAGE));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		sendResponse(new Message("MESSAGE SENT", "Server"), ResponseType.MESSAGE_SENT);
+		sendResponse(messageToSend, ResponseType.MESSAGE_SENT);
     	
 	}
 	

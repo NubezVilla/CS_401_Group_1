@@ -34,23 +34,4 @@ public class LoginInfo implements Serializable {
 		return password;
 	}
 	
-//	Added
-	private String name;
-	private String position;
-	
-	public void setName(String n) {
-		name = n;
-	}
-	
-	public void setPosition(String p) {
-		position = p;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	public String getPosition() {
-		return position;
-	}
 }

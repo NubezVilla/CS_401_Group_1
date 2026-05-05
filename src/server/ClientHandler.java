@@ -69,7 +69,8 @@ public class ClientHandler implements Runnable {
 	        //make the necessary handle objects
 	        authenticateHandle = new AuthenticateHandler(out, in);
 			messageHandle = new MessageHandler(out);
-	        conversationHandle = new ConversationHandler(out, in);
+	        conversationHandle = new ConversationHandler(out, in, this);
+	        
 			while(!isLoggedIn) {
 				
 				Wrapper expectedLoginRequest = (Wrapper) in.readObject();
@@ -81,8 +82,6 @@ public class ClientHandler implements Runnable {
 					//check if the user is an IT user
 					isIT = userAccount.isIT();
 					Server.registerActiveUser(userAccount.getUserID(), this);
-					Broadcast broadcast = new Broadcast();
-					broadcast.broadcastLogin(userAccount);
 				}
 				
 			}
@@ -126,19 +125,19 @@ public class ClientHandler implements Runnable {
 			        //Riya
 			        case CREATE_CONVERSATION:
 			            System.out.println("Creating conversation");
-			            conversationHandle.handleCreateConversation(receivedObject);
+			            conversationHandle.handleCreateConversation(receivedObject, userAccount.getUserID());
 			            break;
 		
 			        //Riya
 			        case CREATE_GROUP_CONVERSATION:
 			            System.out.println("Creating group conversation");
-			            conversationHandle.handleCreateGroupConversation(out, receivedObject);
+			            conversationHandle.handleCreateGroupConversation(out, receivedObject, userAccount.getUserID());
 			            break;
 		
 			        //Alejandro
 			        case GET_CONVERSATION:
 			            System.out.println("Getting conversation");
-			            conversationHandle.handleGetConversation(receivedObject, activeConversationID, isIT);
+			            conversationHandle.handleGetConversation(receivedObject, activeConversationID);
 			            break;
 		
 			        //Alejandro
@@ -177,6 +176,17 @@ public class ClientHandler implements Runnable {
 			        	System.out.println("Updating active conversation");
 			        	handleUpdatingActiveConversation(out, receivedObject);
 			        	break;
+			        	
+			        //Riya
+			        case QUERY_CONVERSATION_LOG:
+			            System.out.println("Querying conversation log");
+			            conversationHandle.handleQueryConversationLog(receivedObject, isIT);
+			            break;
+			         
+			        case REQUEST_CONVERSATION_LOG:
+			            System.out.println("Requesting full conversation log");
+			            conversationHandle.handleRequestConversationLog(receivedObject, isIT);
+			            break;
 	
 			        default:
 			            System.out.println("Invalid Request");

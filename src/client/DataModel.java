@@ -151,33 +151,15 @@ public class DataModel {
 //	Added new
 
 //	private ArrayList<Conversation> ConversationList;
-	private ArrayList<User> ActiveUser = new ArrayList<User>();
 //
 //	
 	public int findConversationIndex(String id) {
-		return conversationList.findConversation(id);
+		return conversationList.findConversationIndex(id);
 	}
 	
-	public void addActiveUsers(ArrayList<User> Ar) {
-		ActiveUser.addAll(Ar);
-	}
-	
-	public void addActiveUser(User U) {
-		ActiveUser.add(U);
-	}
 	
 	public Conversation getConversationAtIndex(int idx) {
 		return conversationList.getElementAt(idx);
 	}
 	
-	public GroupConversation getGroupConversationAtIndex(int idx) {
-		if(conversationList.getElementAt(idx) instanceof GroupConversation) {
-			return conversationList.getGroupAt(idx);
-		}
-		return null;
-	}
-	
-	public void removeActiveUser(User U) {
-		ActiveUser.remove(U);
-	}
 }
