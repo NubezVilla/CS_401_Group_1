@@ -173,23 +173,30 @@ public class ClientHandler implements Runnable {
 			        */ 
 			        //Alejandro
 			        case UPDATE_ACTIVE_CONVERSATION:
-			        	System.out.println("Updating active conversation");
-			        	handleUpdatingActiveConversation(out, receivedObject);
+				        	System.out.println("Updating active conversation");
+				        	handleUpdatingActiveConversation(out, receivedObject);
 			        	break;
+			        	
+			        case CHANGE_GROUP_NAME:
+			        		System.out.println("Changing Group Name");
+			        		conversationHandle.handleChangeGroupName(receivedObject, activeConversationID);
 			        	
 			        //Riya
 			        case QUERY_CONVERSATION_LOG:
 			            System.out.println("Querying conversation log");
-			            conversationHandle.handleQueryConversationLog(receivedObject, isIT);
+			            conversationHandle.handleQueryConversationLog(receivedObject);
 			            break;
 			         
 			        case REQUEST_CONVERSATION_LOG:
 			            System.out.println("Requesting full conversation log");
-			            conversationHandle.handleRequestConversationLog(receivedObject, isIT);
+			            conversationHandle.handleRequestConversationLog(receivedObject);
 			            break;
-	
+			            
+			        case SEARCH_SIMILAR_USERS:
+			        		System.out.println("Searching users");
+			        		authenticateHandle.handleSearchSimilarUsers(out, receivedObject );
 			        default:
-			            System.out.println("Invalid Request");
+			            System.out.println("Invalid Request" + request.name());
 			            break;
 		        }
 			}
@@ -228,26 +235,18 @@ public class ClientHandler implements Runnable {
 		 * the correct user to send messages to
 		 */
 		String updatedConversationID = null;
-		if (!(obj.getPayload() instanceof String)) {
-	        msg = new Message("INVALID PAYLOAD: ", "Server");
-	        Wrapper incorrectPayloadResponse = new Wrapper(msg, ResponseType.MESSAGE_NOT_SENT);
-	        try {
-	            out.writeObject(incorrectPayloadResponse);
-	            out.flush();
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	        return;
+		if (obj.getPayload() == null) {
+			activeConversationID = null;
 		}
 		else {
 			updatedConversationID = (String) obj.getPayload();
+			activeConversationID = updatedConversationID;
 		}
-		activeConversationID = updatedConversationID;
+		System.out.println("Active Conversation ID: " + activeConversationID);
 		msg = new Message("ACTIVE CONVERSATION UPDATED", "Server");
 		Wrapper objectToSend = new Wrapper(msg, ResponseType.ACTIVE_CONVERSATION_UPDATED);
 		try {
-			out.writeObject(objectToSend);
-			out.flush();
+			sendToClient(objectToSend);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

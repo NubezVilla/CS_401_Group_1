@@ -166,7 +166,7 @@ public class ConversationTopBar extends JPanel {
 		confirm.setEnabled(false);
 		confirm.addActionListener(e ->{
 				client.addUserToGroupChat(user.getUser());
-				refresh();
+				refreshMainPage.run();
 				userAddDialog.dispose();
 		});
 		UserSearchBar searchbar = new UserSearchBar(client, u->{
@@ -209,6 +209,7 @@ public class ConversationTopBar extends JPanel {
 		JButton confirm = new JButton("Update Name");
 		confirm.addActionListener(e ->{
 			client.setGroupChatName(nameField.getText());
+			refreshMainPage.run();
 			infoDialog.dispose();
 		});
 		

@@ -38,6 +38,14 @@ public class Conversation implements Serializable {
 		messages = new ArrayList<Message>();
 		mostRecentMessage = createdAt;
 	}
+	
+	public Conversation(ConversationHeader c) {
+		conversationID = c.getID();
+		participantIDs = c.getParticipants();
+		messages = new ArrayList<Message>();
+		createdAt = c.getCreatedAt();
+		mostRecentMessage = createdAt;
+	}
 
 	public String getID() {
 		return conversationID;
@@ -83,5 +91,9 @@ public class Conversation implements Serializable {
 	
 	public void addParticipants(HashSet<String> newParticipants) {
 		participantIDs.addAll(newParticipants);
+	}
+	
+	public ConversationHeader toHeader() {
+		return new ConversationHeader(this);
 	}
 }

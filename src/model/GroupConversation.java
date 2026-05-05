@@ -23,6 +23,12 @@ public class GroupConversation extends Conversation {
 		this.creatorID = creatorID;
 	}
 	
+	public GroupConversation(ConversationHeader c) {
+		super(c);
+		groupName = c.getName();
+		creatorID = c.getCreator();
+	}
+	
 	public String getName() {
 		return groupName;
 	}

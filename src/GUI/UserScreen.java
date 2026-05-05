@@ -73,6 +73,7 @@ public class UserScreen extends JPanel implements DisplayScreen{
 		if (DataModel.getInstance().getCurrentConversation() == null) {
 			conversationDisplayPane.removeAll();
 			conversationDisplayPane.add(buildConversationDisplayPane(), BorderLayout.CENTER);
+			conversationList.updateSelectedConversation(null);
 		}
 		else if (conversationDisplayPane.getComponent(0) == conversationDisplay) {
 	    		conversationDisplay.refresh();

@@ -4,3 +4,4 @@ userId,username,password,realName,position,isIT
 3,user2,pass2,Avalina Rodriguez,Software Engineer,false
 4,admin,admin123,IT Admin,IT,true
 5,user3,pass3,Jason Funderberker, Head Frog, true
+6,test1,test1,John Bonderant,threefold,false

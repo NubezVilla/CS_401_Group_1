@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import model.Conversation;
+import model.Envelope;
 import model.Message;
 import model.ResponseType;
 import model.User;
@@ -24,23 +25,25 @@ import model.Wrapper;
 public class Broadcast {
 
     public void broadcastParticipantAdded(String conversationID, User user, String currentUserID) {
-        Message msg = new Message(
-            "PARTICIPANT ADDED: " + user.getUserID() + " TO " + conversationID,
-            "Server"
-        );
-        Wrapper wrapper = new Wrapper(msg, ResponseType.PARTICIPANT_ADDED);
+        Message m = new Message(user.getName() +" has been added.", "1");
+        Envelope e = new Envelope(m, UserData.getInstance().getConversation(conversationID).toHeader());
+    		
+        Wrapper wrapper = new Wrapper(e, ResponseType.PARTICIPANT_ADDED);
 
-        sendToConversationParticipantsExcept(conversationID, wrapper, currentUserID);
+        sendToConversation(conversationID, wrapper);
     }
 
     public void broadcastParticipantRemoved(String conversationID, User user, String currentUserID) {
-        Message msg = new Message(
-            "PARTICIPANT REMOVED: " + user.getUserID() + " FROM " + conversationID,
-            "Server"
-        );
-        Wrapper wrapper = new Wrapper(msg, ResponseType.PARTICIPANT_REMOVED);
+    		Message m = new Message(user.getName() +" has been removed.", "1");
+        Envelope e = new Envelope(m, UserData.getInstance().getConversation(conversationID).toHeader());
+    		
+        Wrapper wrapper = new Wrapper(e, ResponseType.PARTICIPANT_REMOVED);
 
-        sendToConversationParticipantsExcept(conversationID, wrapper, currentUserID);
+        sendToConversation(conversationID, wrapper);
+    }
+    
+    private void sendToConversation(String conversationID, Wrapper wrapper) {
+    		sendToConversationParticipantsExcept(conversationID, wrapper, null);
     }
 
 
@@ -81,6 +84,7 @@ public class Broadcast {
 
             // Skip offline users
             if (handler == null) {
+            		Server.updateUnreadMessage(userID, conversationID);
                 continue;
             }
 

@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import model.Conversation;
+import model.GroupConversation;
 import model.Message;
 import model.RequestType;
 import model.ResponseType;
@@ -54,18 +55,8 @@ public class ConversationHandler {
 	    Server.saveUserData(currentUser);
 	    Server.saveUserData(otherUser);
 
-	    Broadcast broadcast = new Broadcast();
-	    broadcast.broadcastNewConversation(newConversation, currentUserID);
-
-	    try {
-	        Wrapper response = new Wrapper(newConversation, ResponseType.CREATE_CONVERSATION_SUCCESS);
-	        out.writeObject(response);
-	        out.flush();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	        sendResponse(new Message("FAILED TO SEND NEW CONVERSATION", "Server"),
-	                ResponseType.CREATE_CONVERSATION_FAIL);
-	    }
+	    sendResponse(newConversation, ResponseType.CREATE_CONVERSATION_SUCCESS);
+	        
 	} 
 	
 		/* 
@@ -81,8 +72,14 @@ public class ConversationHandler {
 		        return;
 		    }
 
-		    Conversation groupConversation = (Conversation) obj.getPayload();
-
+		    GroupConversation groupConversation = new GroupConversation((Conversation)obj.getPayload(), currentUserID);
+		    String userNames = "";
+		    for (Object u : groupConversation.getParticipants().toArray()) {
+		    		String name = UserData.getInstance().getUserById((String) u).getName();
+		    		userNames += name + ", ";
+		    }
+		    userNames = userNames.substring(0, userNames.length()-2);
+		    groupConversation.setName(userNames);
 		    Server.addConversation(groupConversation);
 		    Server.saveConversation(groupConversation);
 
@@ -94,19 +91,7 @@ public class ConversationHandler {
 		            Server.saveUserData(user);
 		        }
 		    }
-
-		    Broadcast broadcast = new Broadcast();
-		    broadcast.broadcastNewConversation(groupConversation, currentUserID);
-
-		    try {
-		        Wrapper response = new Wrapper(groupConversation, ResponseType.GROUP_CREATION_SUCCESS);
-		        out.writeObject(response);
-		        out.flush();
-		    } catch (IOException e) {
-		        e.printStackTrace();
-		        sendResponse(new Message("FAILED TO SEND GROUP CONVERSATION", "Server"),
-		                ResponseType.GROUP_CREATION_FAIL);
-		    }
+		    sendResponse(groupConversation, ResponseType.GROUP_CREATION_SUCCESS);
 		}
 		
 		
@@ -134,7 +119,6 @@ public class ConversationHandler {
 		}
 		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.CONVERSATION_SENT);
 		//send the payload
-		System.out.println("I was right");
 		try {
 			clientHandle.sendToClient(sendConversation);
 		} catch (IOException e) {
@@ -156,13 +140,8 @@ public class ConversationHandler {
 			sendResponse(new Message("INVALID PAYLOAD: USER REQUIRED", "Server"), ResponseType.ADD_PARTICIPANT_FAIL);
 			return;
 		}
-		//check to make sure that the conversation the correct conversation is active
-		if (activeConversationID == null) {
-            sendResponse(new Message("NO ACTIVE CONVERSATION SELECTED", "Server"), ResponseType.ADD_PARTICIPANT_FAIL);
-            return;
-        }
 		
-		Conversation currentConversation = Server.getConversation(activeConversationID); 
+		Conversation currentConversation = UserData.getInstance().getConversation(activeConversationID); 
 		
 		if (currentConversation == null) {
             sendResponse(new Message("CONVERSATION NOT FOUND", "Server"), ResponseType.ADD_PARTICIPANT_FAIL);
@@ -196,15 +175,6 @@ public class ConversationHandler {
 		Server.saveConversation(currentConversation);
 		Server.saveUserData(userToAdd);
 
-		// If the added user is online, send them the updated conversation
-		ClientHandler addedUserHandler = Server.getActiveClient(userToAddID);
-		if (addedUserHandler != null) {
-			try {
-				addedUserHandler.sendToClient(new Wrapper(currentConversation, ResponseType.CONVERSATION_SENT));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		sendResponse(new Message("ADDING PARTICIPANT", "Server"), ResponseType.ADD_PARTICIPANT_SUCCESS);
 		Broadcast broadcast = new Broadcast();
 		broadcast.broadcastParticipantAdded(activeConversationID, userToAdd, currentUserID);
@@ -280,7 +250,7 @@ public class ConversationHandler {
 		
 	}
 	
-	void handleQueryConversationLog(Wrapper obj, boolean isIT) {
+	void handleQueryConversationLog(Wrapper obj) {
 	    /*
 	     * IT users can query conversation logs.
 	     * Payload can be:
@@ -288,12 +258,6 @@ public class ConversationHandler {
 	     * 2. String conversationID -> returns that specific conversation
 	     * Response payload is ArrayList<Conversation>.
 	     */
-
-	    if (!isIT) {
-	        sendResponse(new Message("UNAUTHORIZED USER", "Server"),
-	                ResponseType.CONVERSATION_LOG_NOT_SENT);
-	        return;
-	    }
 
 	    Object payload = obj.getPayload();
 	    ArrayList<Conversation> results = new ArrayList<>();
@@ -328,29 +292,11 @@ public class ConversationHandler {
 	        return;
 	    }
 
-	    try {
-	        Wrapper response = new Wrapper(results, ResponseType.CONVERSATION_LOG_QUERY_RESULT);
-	        out.writeObject(response);
-	        out.flush();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	        sendResponse(new Message("FAILED TO SEND CONVERSATION LOG QUERY RESULT", "Server"),
-	                ResponseType.CONVERSATION_LOG_NOT_SENT);
-	    }
+	   sendResponse(results, ResponseType.CONVERSATION_LOG_QUERY_RESULT);
 	} 
-	void handleRequestConversationLog(Wrapper obj, boolean isIT) {
-	    /*
-	     * IT users can request one full conversation log.
-	     * Payload is expected to be a String conversationID.
-	     * Response payload is a Conversation object.
-	     */
-
-	    if (!isIT) {
-	        sendResponse(new Message("UNAUTHORIZED USER", "Server"),
-	                ResponseType.CONVERSATION_LOG_NOT_SENT);
-	        return;
-	    }
-
+	
+	void handleRequestConversationLog(Wrapper obj) {
+	   
 	    if (!(obj.getPayload() instanceof String)) {
 	        sendResponse(new Message("INVALID PAYLOAD: CONVERSATION ID REQUIRED", "Server"),
 	                ResponseType.CONVERSATION_LOG_NOT_SENT);
@@ -359,23 +305,19 @@ public class ConversationHandler {
 
 	    String conversationID = (String) obj.getPayload();
 	    Conversation conversation = Server.getConversation(conversationID);
-
-	    if (conversation == null) {
-	        sendResponse(new Message("CONVERSATION NOT FOUND", "Server"),
-	                ResponseType.CONVERSATION_LOG_NOT_SENT);
-	        return;
-	    }
-
-	    try {
-	        Wrapper response = new Wrapper(conversation, ResponseType.CONVERSATION_LOG_SENT);
-	        out.writeObject(response);
-	        out.flush();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	        sendResponse(new Message("FAILED TO SEND CONVERSATION LOG", "Server"),
-	                ResponseType.CONVERSATION_LOG_NOT_SENT);
-	    }
+	    
+	    sendResponse(conversation, ResponseType.CONVERSATION_SENT);
 	}
+	
+	public void handleChangeGroupName(Wrapper obj, String activeConversationID) {
+		if(obj.getPayload() instanceof String) {
+			((GroupConversation)UserData.getInstance().getConversation(activeConversationID)).setName((String)obj.getPayload());
+			sendResponse(((GroupConversation)UserData.getInstance().getConversation(activeConversationID)), ResponseType.GROUP_NAME_CHANGED);
+			return;
+		}
+		//Send a fail response
+	}
+	
 	
 	// Private helper to reduce repetitive try/catch blocks
 	private void sendResponse(Object o, ResponseType responseType) {
@@ -386,6 +328,7 @@ public class ConversationHandler {
 	        e.printStackTrace();
 	    }
 	}
+
 	
 	
 	

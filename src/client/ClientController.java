@@ -2,6 +2,8 @@ package client;
 
 import java.util.ArrayList;
 
+import javax.swing.SwingUtilities;
+
 import GUI.ClientCalls;
 import client.Client.ClientRunner;
 import model.*;
@@ -67,6 +69,7 @@ public class ClientController implements ClientCalls {
         		if(resp == null) {return false;}
             if(resp.getResponseType() == ResponseType.SENDING_CONVERSATIONS) {
             		loginHelperConversations(resp);	
+            		DataModel.getInstance().setServerUser(getUserByID("1"));
             		return true;
             }
         }
@@ -80,7 +83,6 @@ public class ClientController implements ClientCalls {
         	return false;
         }
         if(resp.getResponseType() == ResponseType.LOGIN_SUCCESS) {
-        		System.out.println("user get");
             loggedUser = (User) resp.getPayload();
             DataModel.getInstance().setCurrentUser(loggedUser);
             return true;
@@ -118,7 +120,7 @@ public class ClientController implements ClientCalls {
         }
         loggedUser = null;
         DataModel.getInstance().setCurrentUser(null);
-        //Need to terminate client here
+        runner.shutdown();
     }
     
 
@@ -146,6 +148,7 @@ public class ClientController implements ClientCalls {
     
     
     @Override
+    //TODO FIX THISSS
     public Boolean createNewITUser(String name, String position, String username, String password) {
         User thisUser = new User(username, password);
         thisUser.setName(name);
@@ -155,8 +158,7 @@ public class ClientController implements ClientCalls {
         	return false;
         }
         if(resp.getResponseType() == ResponseType.REGISTER_USER_SUCCESS) {
-            loggedUser = (User) resp.getPayload();
-            DataModel.getInstance().setCurrentUser(loggedUser);
+           
             return true;
         }
         return false;
@@ -213,39 +215,44 @@ public class ClientController implements ClientCalls {
     
     
     public void getMessage(Envelope E) {
-    		System.out.println("Got a message");
 	    if (	DataModel.getInstance().getConversationList().findConversation(E.getID()) == null) {
-	    		System.out.println("Trying to find conversation");
-	    		Conversation temp = requestConversationById(E.getID());
-	    		DataModel.getInstance().addConversationToList(temp);
-	    		System.out.println("Convo found");
+	    		if(E.getHeader().isGroup()) {
+	    			GroupConversation temp = new GroupConversation(E.getHeader());
+	    			DataModel.getInstance().addConversationToList(temp);
+	    		}
+	    		else {
+	    			Conversation temp = new Conversation(E.getHeader());
+	    			DataModel.getInstance().addConversationToList(temp);
+	    		}
 	    }
-	    System.out.println("Adding message");
-	    	DataModel.getInstance().addMessageToConversation(DataModel.getInstance().getConversationList().findConversation(E.getID()), E.getMessage());
-	    if (!DataModel.getInstance().getCurrentConversation().getID().equals(E.getID())) {
-	    		loggedUser.addUnreadConversation(E.getID());
+	    if (DataModel.getInstance().getCurrentConversation() == null || 
+	    		!DataModel.getInstance().getCurrentConversation().getID().equals(E.getID())) {
+    			loggedUser.addUnreadConversation(E.getID());
+    			SwingUtilities.invokeLater(() -> {
+    	    			DataModel.getInstance().addMessageToConversation(DataModel.getInstance().getConversationList().findConversation(E.getID()), E.getMessage());
+    			});
+	    }	
+	    else {
+	    		SwingUtilities.invokeLater(()-> {
+	    			DataModel.getInstance().addMessageToCurrent(E.getMessage());
+	    		});
 	    }
     }
     
-    
-    
-    
+ 
     @Override
     public void addUserToGroupChat(User u) {
         if(!(DataModel.getInstance().getCurrentConversation() instanceof GroupConversation)) {
         	return;
         }
         Wrapper resp = sendAndWait(u, RequestType.ADD_PARTICIPANT);
+	    	if(resp == null) {
+	    		return;
+	    	}
         if(resp.getResponseType() != ResponseType.ADD_PARTICIPANT_SUCCESS){
-        	if(resp.getResponseType() == ResponseType.ADD_PARTICIPANT_FAIL) {
-        		return;
-        	}
-        	while(resp != null && resp.getResponseType() != ResponseType.ADD_PARTICIPANT_SUCCESS) {
-        		resp = waitForResponse();
-        	}
-        	if(resp == null) {
-        		return;
-        	}
+	        	if(resp.getResponseType() == ResponseType.ADD_PARTICIPANT_FAIL) {
+	        		return;
+	        	}
         }
         DataModel.getInstance().getCurrentConversation().addParticipant(u.getUserID());;
     }
@@ -259,18 +266,20 @@ public class ClientController implements ClientCalls {
         	return;
         }
         Wrapper resp = sendAndWait(u, RequestType.REMOVE_PARTICIPANT);
-        if(resp.getResponseType() != ResponseType.REMOVE_PARTICIPANT_SUCCESS){
-        	if(resp.getResponseType() == ResponseType.REMOVE_PARTICIPANT_FAIL) {
-        		return;
-        	}
-        	while(resp != null && resp.getResponseType() != ResponseType.REMOVE_PARTICIPANT_SUCCESS) {
-        		resp = waitForResponse();
-        	}
-        	if(resp == null) {
-        		return;
-        	}
+        if(resp == null) {
+    			return;
         }
-        DataModel.getInstance().getCurrentConversation().removeParticipant(u.getUserID());;
+        if(resp.getResponseType() != ResponseType.REMOVE_PARTICIPANT_SUCCESS){
+	        	if(resp.getResponseType() == ResponseType.REMOVE_PARTICIPANT_FAIL) {
+	        		return;
+	        	}
+        }
+        DataModel.getInstance().getCurrentConversation().removeParticipant(u.getUserID());
+        if (u.equals(loggedUser)) {
+        		System.out.println("Not the father");
+        		loggedUser.getConversations().remove(DataModel.getInstance().getCurrentConversation());
+        		DataModel.getInstance().getConversationList().removeElement(DataModel.getInstance().getCurrentConversation());
+        }
     }
     
     
@@ -317,9 +326,6 @@ public class ClientController implements ClientCalls {
         DataModel.getInstance().getCurrentUser().addConversation(newConversation.getID());
         return newConversation;
     }
-
-    
-
     
     @Override
     public Conversation requestConversationById(String id) {
@@ -335,28 +341,23 @@ public class ClientController implements ClientCalls {
         Conversation requestedConversation = (Conversation) resp.getPayload();
         return requestedConversation;
     }
-    
-    
-    
-    
+
     
     @Override
     public void updateCurrentConversation(String id) {
         Wrapper resp = sendAndWait(id, RequestType.UPDATE_ACTIVE_CONVERSATION);
-        if(resp.getResponseType() != ResponseType.ACTIVE_CONVERSATION_UPDATED){
-        	while(resp != null && resp.getResponseType() != ResponseType.ACTIVE_CONVERSATION_UPDATED) {
-        		resp = waitForResponse();
-        	}
-        	if(resp == null) {
-        		return;
-        	}
+	    	if(resp == null) {
+	    		return;
+	    	}
+        if (id != null) {
+	        DataModel.getInstance().setCurrentConversation(DataModel.getInstance().findConversationIndex(id));
+	        DataModel.getInstance().getCurrentUser().readConversation(id);
         }
-        DataModel.getInstance().setCurrentConversation(DataModel.getInstance().findConversationIndex(id));
+        else {
+        		DataModel.getInstance().emptyCurrentConversation();
+        }
     }
-
-
-    
-    
+ 
     
     public void getConversations(ArrayList<Conversation> Ar){
     	for(int x = 0; x < Ar.size(); x++) {
@@ -364,11 +365,7 @@ public class ClientController implements ClientCalls {
     	}
     }
     
-    
 
-    
-    
-    
     
     @Override
     public Boolean updateUser(User target, String newName, String newPosition, String newUsername, String newPassword) {
@@ -395,12 +392,14 @@ public class ClientController implements ClientCalls {
     }
 
     public void groupConversationParticipantChanged(Wrapper c) {
-        GroupConversation participantChanged = (GroupConversation) c.getPayload();
-        String ID = participantChanged.getID();
-        int idx = DataModel.getInstance().findConversationIndex(ID);
-        DataModel.getInstance().getConversationAtIndex(idx).clearParticipants();
-        DataModel.getInstance().getConversationAtIndex(idx).addParticipants(participantChanged.getParticipants());	
+    		Envelope E = (Envelope) c.getPayload();
+        String ID = E.getHeader().getID();
+        Conversation convo = DataModel.getInstance().getConversationList().findConversation(ID);
+        convo.clearParticipants();
+        convo.addParticipants(E.getHeader().getParticipants());
+        DataModel.getInstance().addMessageToConversation(convo, E.getMessage());
     }
+    
     @Override
     public void setGroupChatName(String name) {
         Conversation current = DataModel.getInstance().getCurrentConversation();
@@ -416,20 +415,18 @@ public class ClientController implements ClientCalls {
     
     
     public void changeGroupName(GroupConversation c) {
-    	String ID = c.getID();
-    	int idx = DataModel.getInstance().findConversationIndex(ID);
-    	GroupConversation changedName = (GroupConversation) DataModel.getInstance().getConversationAtIndex(idx);
-    	if(DataModel.getInstance() != null) {
-    		changedName.setName(c.getName());
-    	}
+	    	String ID = c.getID();
+	    	int idx = DataModel.getInstance().findConversationIndex(ID);
+	    	GroupConversation changedName = (GroupConversation) DataModel.getInstance().getConversationAtIndex(idx);
+	    	if(DataModel.getInstance() != null) {
+	    		changedName.setName(c.getName());
+	    	}
     }
-    
-    
-    
+
     
     @Override
     public ArrayList<Conversation> queryConversationLogsByUser(User u) {
-        Wrapper resp = sendAndWait(u, RequestType.QUERY_CONVERSATION_LOG_BY_USER);
+        Wrapper resp = sendAndWait(u, RequestType.QUERY_CONVERSATION_LOG);
         if (resp == null) return new ArrayList<>();
         if (resp.getResponseType() == ResponseType.CONVERSATION_LOG_QUERY_RESULT) {
             @SuppressWarnings("unchecked")
@@ -444,7 +441,7 @@ public class ClientController implements ClientCalls {
     
     @Override
     public ArrayList<Conversation> queryConversationLogsByID(String id) {
-        Wrapper resp = sendAndWait(id, RequestType.QUERY_CONVERSATION_LOG_BY_ID); 
+        Wrapper resp = sendAndWait(id, RequestType.QUERY_CONVERSATION_LOG); 
         if (resp == null) return new ArrayList<>();
         if (resp.getResponseType() == ResponseType.CONVERSATION_LOG_QUERY_RESULT) {
             @SuppressWarnings("unchecked")

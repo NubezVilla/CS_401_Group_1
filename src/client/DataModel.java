@@ -47,11 +47,13 @@ public class DataModel {
 	}
 	
 	protected void addMessageToCurrent(Message m) {
-		currentConversationMessageList.addMessage(m);
 		addMessageToConversation(currentConversation, m);
 	}
 	
 	protected void addMessageToConversation(Conversation c, Message m) {
+		if(c.equals(currentConversation)) {
+			currentConversationMessageList.addMessage(m);
+		}
 		conversationList.get(c).addMessage(m);
 		conversationList.sortByRecentMessage();
 	}

@@ -171,7 +171,7 @@ public class MessageHandler {
           
 			//get their socket to write to
             try {
-            		Envelope messageAndConvoID = new Envelope(messageToSend, activeConversationID);
+            		Envelope messageAndConvoID = new Envelope(messageToSend, currentConversation.toHeader());
 				handler.sendToClient(new Wrapper(messageAndConvoID, ResponseType.SENDING_MESSAGE));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

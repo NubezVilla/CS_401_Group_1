@@ -2,6 +2,8 @@ package client;
 import model.*;
 import GUI.MainWindow;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -18,26 +20,47 @@ public class Client {
 	public static BlockingQueue<Wrapper> wrappedObjects;
 
 	public static void main(String[] args) throws Exception {
-		Socket socket = new Socket(address, port);
-	    isConnected = true;
-	    wrappedObjects = new LinkedBlockingQueue<>();
-	    ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-	    out.flush();
-	    ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-	    ClientRunner runner = new ClientRunner(socket, out, wrappedObjects);
-	    client = new ClientController(runner);
-	    ClientListener listener = new ClientListener(socket, in, client);
-	    Thread listenerThread = new Thread(listener, "ClientListener");
-	    Thread runnerThread = new Thread(runner, "ClientRunner");
-	    listenerThread.start();
-	    runnerThread.start();
-	    MainWindow m = new MainWindow(client);
-	    m.startup();
-	    listenerThread.join();
-	    runnerThread.join();
-	    
-	    
-	    try { socket.close(); } catch (IOException ignored) {}
+		 Socket socket = new Socket(address, port);
+		 isConnected = true;
+		 wrappedObjects = new LinkedBlockingQueue<>();
+
+		 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+		 out.flush();
+		 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+		 ClientRunner runner = new ClientRunner(socket, out, wrappedObjects);
+		 client = new ClientController(runner);
+
+		 ClientListener listener = new ClientListener(socket, in, client);
+
+		 Thread listenerThread = new Thread(listener, "ClientListener");
+		 Thread runnerThread = new Thread(runner, "ClientRunner");
+
+		 listenerThread.start();
+		 runnerThread.start();
+
+		 MainWindow m = new MainWindow(client);
+		 Runnable shutdown = () -> {
+			    runner.shutdown();          // closes socket, unblocks readObject()
+			    runnerThread.interrupt();   // unblocks queue.take()
+			    listenerThread.interrupt();
+			};
+
+			m.addWindowListener(new WindowAdapter() {
+			    @Override
+			    public void windowClosing(WindowEvent e) {
+			        shutdown.run();
+			        m.dispose();
+			    }
+
+			    @Override
+			    public void windowClosed(WindowEvent e) {
+			        shutdown.run();
+			    }
+			});
+		m.startup();
+		listenerThread.join();
+		runnerThread.join();
 	}
 	
 	
@@ -56,7 +79,7 @@ public class Client {
 	    @Override
 	    public void run() {
 	        try {
-	            while (true) {
+	            while (!clientSocket.isClosed()) {
 	                Wrapper data;
 	                try {
 	                    data = (Wrapper) objectListen.readObject();
@@ -132,5 +155,10 @@ public class Client {
 	            Thread.currentThread().interrupt();
 	        }
 		}
+		public void shutdown() {
+	        try {
+	        		clientSocket.close();
+	        } catch (IOException ignored) {}
+	    }
 	}
 }

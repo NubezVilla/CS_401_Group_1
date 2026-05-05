@@ -3,11 +3,11 @@ import java.io.Serializable;
 
 public class Envelope implements Serializable{
 	Message thisMessage;
-	String conversationID;
+	ConversationHeader cHeader;
 	
-	public Envelope(Message information, String ID) {
+	public Envelope(Message information, ConversationHeader c) {
 		thisMessage = information;
-		conversationID = ID;
+		cHeader = c;
 	}
 	
 	public Message getMessage() {
@@ -15,14 +15,10 @@ public class Envelope implements Serializable{
 	}
 	
 	public String getID() {
-		return conversationID;
+		return cHeader.getID();
 	}
-	
-	public void setMessage(Message m) {
-		thisMessage = m;
-	}
-	
-	public void setID(String ID) {
-		conversationID = ID;
+
+	public ConversationHeader getHeader() {
+		return cHeader;
 	}
 }
