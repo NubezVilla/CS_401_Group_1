@@ -397,9 +397,9 @@ public class ClientController implements ClientCalls {
     public void groupConversationParticipantChanged(Wrapper c) {
         GroupConversation participantChanged = (GroupConversation) c.getPayload();
         String ID = participantChanged.getID();
-        int idx = convo.findConversationIndex(ID);
-        convo.getConversationAtIndex(idx).clearParticipants();
-        convo.getConversationAtIndex(idx).addParticipants(participantChanged.getParticipants());	
+        int idx = DataModel.getInstance().findConversationIndex(ID);
+        DataModel.getInstance().getConversationAtIndex(idx).clearParticipants();
+        DataModel.getInstance().getConversationAtIndex(idx).addParticipants(participantChanged.getParticipants());	
     }
     @Override
     public void setGroupChatName(String name) {
@@ -417,9 +417,9 @@ public class ClientController implements ClientCalls {
     
     public void changeGroupName(GroupConversation c) {
     	String ID = c.getID();
-    	int idx = convo.findConversationIndex(ID);
-    	GroupConversation changedName = convo.getGroupConversationAtIndex(idx);
-    	if(convo != null) {
+    	int idx = DataModel.getInstance().findConversationIndex(ID);
+    	GroupConversation changedName = (GroupConversation) DataModel.getInstance().getConversationAtIndex(idx);
+    	if(DataModel.getInstance() != null) {
     		changedName.setName(c.getName());
     	}
     }
@@ -488,12 +488,12 @@ public class ClientController implements ClientCalls {
         }
         if(resp.getPayload() instanceof GroupConversation) {
         	GroupConversation groupLog = (GroupConversation) resp.getPayload();
-        	convo.setCurrentLog(groupLog);
+        	DataModel.getInstance().setCurrentLog(groupLog);
         	
         }
         else {
         	Conversation groupLog = (Conversation) resp.getPayload();
-        	convo.setCurrentLog(groupLog);
+        	DataModel.getInstance().setCurrentLog(groupLog);
         }
     }
 

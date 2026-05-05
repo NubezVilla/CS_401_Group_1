@@ -126,7 +126,7 @@ public class Server {
 	    }
 
 	    for (String conversationID : user.getConversations()) {
-	        Conversation conversation = userDataHandle.getConversation(conversationID);
+	        Conversation conversation = UserData.getInstance().getConversation(conversationID);
 
 	        if (conversation != null) {
 	            result.add(conversation);
@@ -136,19 +136,19 @@ public class Server {
 	    return result;
 	}
 	public static void addUserData(User user) {
-	    userDataHandle.addUser(user);
+	    UserData.getInstance().addUser(user);
 	}
 
 	public static void addConversation(Conversation conversation) {
-	    userDataHandle.addConversation(conversation);
+		UserData.getInstance().addConversation(conversation);
 	}
 
 	public static User getUserByIdString(String userID) {
-	    return userDataHandle.getUserById(userID);
+	    return UserData.getInstance().getUserById(userID);
 	}
 
 	public static ArrayList<User> getAllUsers() {
-	    return userDataHandle.getAllUsers();
+	    return UserData.getInstance().getAllUsers();
 	}
 
 	/*** 

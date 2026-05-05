@@ -35,7 +35,7 @@ public class ConversationHandler {
 	    }
 
 	    User incomingUser = (User) obj.getPayload();
-	    User otherUser = Server.getUserbyID(incomingUser);
+	    User otherUser = Server.getUserbyID(incomingUser.getUserID());
 	    User currentUser = Server.getUserByIdString(currentUserID);
 
 	    if (otherUser == null || currentUser == null) {
@@ -300,7 +300,7 @@ public class ConversationHandler {
 
 	    if (payload instanceof User) {
 	        User requestedUser = (User) payload;
-	        User foundUser = Server.getUserbyID(requestedUser);
+	        User foundUser = Server.getUserbyID(requestedUser.getUserID());
 
 	        if (foundUser == null) {
 	            sendResponse(new Message("USER NOT FOUND", "Server"),
