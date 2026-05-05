@@ -1,5 +1,6 @@
 package client;
 
+import java.net.Socket;
 import java.util.ArrayList;
 
 import javax.swing.SwingUtilities;

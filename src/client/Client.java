@@ -1,5 +1,6 @@
 package client;
 import model.*;
+import GUI.ConnectionScreen;
 import GUI.MainWindow;
 
 import java.awt.event.WindowAdapter;
@@ -20,7 +21,9 @@ public class Client {
 	public static BlockingQueue<Wrapper> wrappedObjects;
 
 	public static void main(String[] args) throws Exception {
-		 Socket socket = new Socket(address, port);
+		
+		 ConnectionScreen connector = new ConnectionScreen();
+		 Socket socket = connector.getSocket();
 		 isConnected = true;
 		 wrappedObjects = new LinkedBlockingQueue<>();
 
