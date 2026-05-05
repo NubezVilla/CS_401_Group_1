@@ -125,13 +125,13 @@ public class ClientHandler implements Runnable {
 			        //Riya
 			        case CREATE_CONVERSATION:
 			            System.out.println("Creating conversation");
-			            conversationHandle.handleCreateConversation(receivedObject);
+			            conversationHandle.handleCreateConversation(receivedObject, userAccount.getUserID());
 			            break;
 		
 			        //Riya
 			        case CREATE_GROUP_CONVERSATION:
 			            System.out.println("Creating group conversation");
-			            conversationHandle.handleCreateGroupConversation(out, receivedObject);
+			            conversationHandle.handleCreateGroupConversation(out, receivedObject, userAccount.getUserID());
 			            break;
 		
 			        //Alejandro
@@ -177,10 +177,17 @@ public class ClientHandler implements Runnable {
 			        	handleUpdatingActiveConversation(out, receivedObject);
 			        	break;
 			        	
-			        case SEARCH_SIMILAR_USERS:
-				        	System.out.println("Searching for users");
-				        	authenticateHandle.handleSearchSimilarUsers(out, receivedObject);
-				        	break;
+			        //Riya
+			        case QUERY_CONVERSATION_LOG:
+			            System.out.println("Querying conversation log");
+			            conversationHandle.handleQueryConversationLog(receivedObject, isIT);
+			            break;
+			         
+			        case REQUEST_CONVERSATION_LOG:
+			            System.out.println("Requesting full conversation log");
+			            conversationHandle.handleRequestConversationLog(receivedObject, isIT);
+			            break;
+	
 			        default:
 			            System.out.println("Invalid Request");
 			            break;

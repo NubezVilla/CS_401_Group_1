@@ -44,7 +44,7 @@ public class ClientController implements ClientCalls {
             	getMessage((Envelope) data.getPayload());
             	break;
             case GROUP_NAME_CHANGED:
-            	changeGroupName((Conversation) data.getPayload());
+            	changeGroupName((GroupConversation) data.getPayload());
             case SENDING_CONVERSATIONS:
             	deliverResponse(data);
             	break;
@@ -395,9 +395,11 @@ public class ClientController implements ClientCalls {
     }
 
     public void groupConversationParticipantChanged(Wrapper c) {
-    	if(c.getResponseType() == ResponseType.PARTICIPANT_ADDED) {
-//    		Change conversation model
-    	}
+        GroupConversation participantChanged = (GroupConversation) c.getPayload();
+        String ID = participantChanged.getID();
+        int idx = convo.findConversationIndex(ID);
+        convo.getConversationAtIndex(idx).clearParticipants();
+        convo.getConversationAtIndex(idx).addParticipants(participantChanged.getParticipants());	
     }
     @Override
     public void setGroupChatName(String name) {
@@ -413,9 +415,16 @@ public class ClientController implements ClientCalls {
     
     
     
-    public void changeGroupName(Conversation c) {
-    	
+    public void changeGroupName(GroupConversation c) {
+    	String ID = c.getID();
+    	int idx = convo.findConversationIndex(ID);
+    	GroupConversation changedName = convo.getGroupConversationAtIndex(idx);
+    	if(convo != null) {
+    		changedName.setName(c.getName());
+    	}
     }
+    
+    
     
     
     @Override
@@ -465,7 +474,27 @@ public class ClientController implements ClientCalls {
     
     @Override
     public void updateCurrentLog(String id) {
-        //DataModel.getInstance().setCurrentLog();
+    	Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
+        if(resp.getResponseType() != ResponseType.CONVERSATION_SENT){
+        	if(resp.getResponseType() == ResponseType.CONVERSATION_SENT) {
+        		return ;
+        	}
+        	while(resp != null && resp.getResponseType() != ResponseType.CONVERSATION_SENT) {
+        		resp = waitForResponse();
+        	}
+        	if(resp == null) {
+        		return;
+        	}
+        }
+        if(resp.getPayload() instanceof GroupConversation) {
+        	GroupConversation groupLog = (GroupConversation) resp.getPayload();
+        	convo.setCurrentLog(groupLog);
+        	
+        }
+        else {
+        	Conversation groupLog = (Conversation) resp.getPayload();
+        	convo.setCurrentLog(groupLog);
+        }
     }
 
     

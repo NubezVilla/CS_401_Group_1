@@ -5,6 +5,7 @@ import java.util.Comparator;
 import javax.swing.AbstractListModel;
 
 import model.Conversation;
+import model.GroupConversation;
 
 public class ConversationListModel extends AbstractListModel<Conversation> {
 	private ArrayList<Conversation> listModel = new ArrayList<Conversation>();
@@ -91,4 +92,11 @@ public class ConversationListModel extends AbstractListModel<Conversation> {
 		return -1;
 	}
 
+	public GroupConversation getGroupAt(int index) {
+		if(listModel.get(index) instanceof GroupConversation) {
+			GroupConversation group = (GroupConversation) listModel.get(index);	
+			return group;
+		}
+		return null;
+	}
 }
