@@ -17,11 +17,13 @@ public class ConversationHandler {
 	private ObjectOutputStream out;
 	private ObjectInputStream in;
 	private ResponseHandler responseHandle;
+	private ClientHandler clientHandle;
 	
-	public ConversationHandler (ObjectOutputStream out, ObjectInputStream in) {
+	public ConversationHandler (ObjectOutputStream out, ObjectInputStream in, ClientHandler client) {
 		this.out = out;
 		this.in = in;
 		this.responseHandle = new ResponseHandler(out, in);
+		this.clientHandle = client;
 	}
 	
 	void handleCreateConversation(Wrapper obj) {
@@ -32,8 +34,14 @@ public class ConversationHandler {
 		 * are found in ClientList<ClientHandler, User> in the Server.
 		 *  
 		 */
-		sendResponse( new Message("CREAING CONVERSATION", "Server"), ResponseType.CREATE_CONVERSATION_SUCCESS);
-		
+		if (obj.getPayload() instanceof User) {
+			User other = (User) obj.getPayload();
+			Conversation newConvo = new Conversation(clientHandle.getUserID(), other.getUserID());
+			UserData.getInstance().addConversation(newConvo);
+			UserData.getInstance().getUserById(other.getUserID()).addConversation(newConvo.getID());
+			sendResponse(newConvo, ResponseType.CREATE_CONVERSATION_SUCCESS);
+		}
+
 		
 	}
 	
@@ -116,7 +124,7 @@ public class ConversationHandler {
         }
 		
 		User incomingUser = (User) obj.getPayload();
-		User userToAdd = Server.getUserbyID(incomingUser);
+		User userToAdd = Server.getUserbyID(incomingUser.getUserID());
 
 		if (userToAdd == null) {
             sendResponse(new Message("USER NOT FOUND", "Server"), ResponseType.ADD_PARTICIPANT_FAIL);
@@ -187,7 +195,7 @@ public class ConversationHandler {
         }
 		
 		//get the user from the Existing data to update
-		User removingUser = Server.getUserbyID(userToRemove);
+		User removingUser = Server.getUserbyID(userToRemove.getUserID());
 		
 		if (removingUser == null) {
             sendResponse(new Message("USER NOT FOUND", "Server"), ResponseType.REMOVE_PARTICIPANT_FAIL);
@@ -238,9 +246,9 @@ public class ConversationHandler {
     }
 	
 	// Private helper to reduce repetitive try/catch blocks
-	private void sendResponse(Message msg, ResponseType responseType) {
+	private void sendResponse(Object o, ResponseType responseType) {
 	    try {
-	        Wrapper response = new Wrapper(msg, responseType);
+	        Wrapper response = new Wrapper(o, responseType);
 	        out.writeObject(response);
 	        out.flush();
 	    } catch (IOException e) {

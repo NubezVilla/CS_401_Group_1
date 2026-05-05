@@ -6,10 +6,12 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
- 
+
+import client.DataModel;
 import model.Conversation;
 import model.LoginInfo;
 import model.Message;
+import model.RequestType;
 import model.ResponseType;
 import model.User;
 import model.Wrapper;
@@ -61,9 +63,7 @@ public class AuthenticateHandler {
         //send the user account first
         Wrapper sendUserAccount = new Wrapper(userAccount, ResponseType.LOGIN_SUCCESS);
         //send the user account and a LOGIN_SUCCESS
-        sendPayload(sendUserAccount);
-        //boolean userSent = responseHandle.sendWithRetry(sendUserAccount, ResponseType.DATA_RECEIVED);
-
+        boolean userSent = responseHandle.sendWithRetry(sendUserAccount, ResponseType.LOGIN_SUCCESS);
         /*if (!userSent) {
             sendResponse(new Message("FAILED TO SEND USER DATA", "Server"), ResponseType.LOGIN_FAIL);
             return false;
@@ -80,31 +80,28 @@ public class AuthenticateHandler {
         	}
             
         }
-
-        Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.CONVERSATION_SENT);
+        Wrapper sendConversations = new Wrapper(conversationsToSend, ResponseType.SENDING_CONVERSATIONS);
         //send the conversation data
         sendPayload(sendConversations);
+        //No you don't, we have no logic for this. - Jack
         //i also need to send the active client list so the client logging in know who is online
-        ArrayList<String> activeUsers = Server.getActiveUserIDs();
-        Wrapper activeUsersPayload = new Wrapper(activeUsers, ResponseType.USER_INFO_SENT);
-        sendPayload(activeUsersPayload);
-        /*
-        boolean conversationsSent = responseHandle.sendWithRetry(sendConversations, ResponseType.DATA_RECEIVED);
+//        ArrayList<String> activeUsers = Server.getActiveUserIDs();
+//        Wrapper activeUsersPayload = new Wrapper(activeUsers, ResponseType.USER_INFO_SENT);
+//        sendPayload(activeUsersPayload);
 
-        if (!conversationsSent) {
-            sendResponse(new Message("FAILED TO SEND CONVERSATION DATA", "Server"), ResponseType.LOGIN_FAIL);
-            return isLoggedIn;
-        }*/
 
         // Success
         isLoggedIn = true;
-        //sendResponse(new Message("LOGGING IN", "Server"), ResponseType.LOGIN_SUCCESS);
         return isLoggedIn;
     }
 
 	
     boolean handleLogout(Wrapper obj, ArrayList<Message> logQueue, Socket clientSocket) {
-		/*
+		/*Jack: No reason to save conversations from user on logout.
+		 * Just the user's information. Messages are to be stored (at least 
+		 * in cache) as soon as they are sent. Rewriting this to 
+		 * only deal with user stuff. 
+		 * 
 		 * This method must save all of the users data to a file.
 		 * The user data includes all messages that have been sent
 		 * since start up to logs, conversations, new conversations, 
@@ -128,34 +125,11 @@ public class AuthenticateHandler {
 			userAccount = updatedUser; //update this User's profile
 		}
  
-		/*
-		 * Assuming the read in for User is done correctly, read in
-		 * the next package for the Conversations.
-		 * This should be a list of Conversation objects that the user is 
-		 * a participant.
-		 */
-		ArrayList<Conversation> updatedConversations = null;
-		try {
-			//assuming the next read is an Array
-			Wrapper arrayObject = (Wrapper) in.readObject();
-			if (!(arrayObject.getPayload() instanceof ArrayList<?>)) {
-				sendResponse(new Message("INVALID LOGOUT PAYLOAD: CONVERSATION LIST REQUIRED", "Server"), ResponseType.LOGOUT_FAIL);
-	            return isLoggedIn;
-	        }
-			else { updatedConversations = (ArrayList<Conversation>) arrayObject.getPayload(); }
-		} catch (IOException | ClassNotFoundException e) {
-			e.printStackTrace();
-			sendResponse(new Message("FAILED TO READ LOGOUT DATA", "Server"), ResponseType.LOGOUT_FAIL);
-			return isLoggedIn;
-		}
  
 		try {
 			//Save updated user profile
 			Server.saveUserData(userAccount);
 			//Save each conversation
-			for (Conversation conversation : updatedConversations) {
-				Server.saveConversation(conversation);
-			}
 			//Save message logs
 			Server.saveLogQueue(userAccount.getUserID(), logQueue);
 			//Remove from active users
@@ -176,23 +150,39 @@ public class AuthenticateHandler {
     }
  
 	void handleRegister(ObjectOutputStream out, Wrapper obj) {
-		/* 
-		 * This method must create a new user. The user
-		 * must be added to UserData. The new user information
-		 * must be saved to file as well. This can be done here
-		 * or during logout?
-		 */
-		sendResponse(new Message("REGISTERING NEW USER", "Server"), ResponseType.REGISTER_USER_SUCCESS);
-		
+		if (obj.getPayload() instanceof ArrayList<?>) {
+			ArrayList<String> userInfo = (ArrayList<String>) obj.getPayload();
+			User newUser = new User(userInfo.get(0), userInfo.get(1));
+			newUser.setName(userInfo.get(2));
+			newUser.setPosition(userInfo.get(3));
+			UserData.getInstance().addUser(newUser);
+			Server.saveUserData(newUser);
+			sendResponse(newUser, ResponseType.REGISTER_USER_SUCCESS);
+		}
+		//Should include error handling, not worrying about it right now. 
 	}
 
     
 	void handleGetUserInfo(ObjectOutputStream out, Wrapper obj) {
-		/* 
-		 * This method retrieves a User's information from UserData. 
-		 */
-		sendResponse(new Message("RETRIEVING USER INFO", "Server"), ResponseType.USER_INFO_SENT);
-		
+		if (obj.getPayload() instanceof String) {
+			User requested = UserData.getInstance().getUserById((String)obj.getPayload());
+			sendResponse(requested, ResponseType.USER_INFO_SENT);
+		}
+		//Should include error handling, not worrying about it right now. 
+	}
+	
+	void handleSearchSimilarUsers(ObjectOutputStream out, Wrapper obj) {
+		if (obj.getPayload() instanceof String) {
+			String matching = (String) obj.getPayload();
+			ArrayList<User> response = new ArrayList<User>();
+			for(User u : UserData.getInstance().getAllUsers()) {
+				if (u.getName().contains(matching) || 
+						u.getUserID().startsWith(matching)) {
+					response.add(u);
+				}
+			}
+			sendResponse(response, ResponseType.USER_INFO_SENT);
+		}
 	}
     
     
@@ -211,9 +201,9 @@ public class AuthenticateHandler {
     }
 
     // Private helper to reduce repetitive try/catch blocks
-    private void sendResponse(Message msg, ResponseType responseType) {
+    private void sendResponse(Object o, ResponseType responseType) {
         try {
-            Wrapper response = new Wrapper(msg, responseType);
+            Wrapper response = new Wrapper(o, responseType);
             out.writeObject(response);
             out.flush();
         } catch (IOException e) {

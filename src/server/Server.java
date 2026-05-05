@@ -19,7 +19,6 @@ public class Server {
 	private static int port = 54927;
 	private boolean isConnected;
 	private static FileManager fileManagerHandle;
-	private static UserData userDataHandle;
 	private static ConcurrentHashMap<String, ClientHandler> activeUserList = new ConcurrentHashMap<>();//userID, Client
 
 	
@@ -27,11 +26,10 @@ public class Server {
 		/* There has to be a lot of setup before the server can start listening.
 		 * The server needs to load all user files into the data structures inside UserData.
 		 */
-		userDataHandle = new UserData();
 		fileManagerHandle = new FileManager();
 		
 		try {
-		    fileManagerHandle.loadData(userDataHandle);
+		    fileManagerHandle.loadData(UserData.getInstance());
 		} catch (IOException e) {
 		    e.printStackTrace();
 		}
@@ -71,6 +69,7 @@ public class Server {
 	}
 	
 	/*** FileManager class methods ***/
+	
 	public static void saveUserData(User user) {
 		//save the user data to disk with the FileManager
 		try {
@@ -103,29 +102,31 @@ public class Server {
 	
 	/*** UserData class methods ***/
 	public static User getUserData(int loginHashCode) {
-		return userDataHandle.getUserByLoginHash(loginHashCode);
+		return UserData.getInstance().getUserByLoginHash(loginHashCode);
 	}
 	
-	public static User getUserbyID(User user) {
-		return userDataHandle.getUserById(user.getUserID());
+	public static User getUserbyID(String string) {
+		return UserData.getInstance().getUserById(string);
 	}
 	
 	public static Conversation getConversation(String activeConversationID) {
-		return userDataHandle.getConversation(activeConversationID);
+		return UserData.getInstance().getConversation(activeConversationID);
 	}
 	
 	public static void updateUnreadMessage(String userID, String activeConversationID) {
-		userDataHandle.updateUnreadMessage(userID, activeConversationID);
+		UserData.getInstance().updateUnreadMessage(userID, activeConversationID);
 	}
+	
 	
 
 	/*** 
 	 * TEST HELPER METHODS 
 	 * These are for JUnit testing. 
 	 * ***/
-	public static void setTestUserData(UserData testData) {
-		userDataHandle = testData;
-	}
+	//Doesn't work with singleton userdata. Fix later. 
+//	public static void setTestUserData(UserData testData) {
+//		userDataHandle = testData;
+//	}
 	
 	public static void setTestFileManager(FileManager testManager) {
 		fileManagerHandle = testManager;

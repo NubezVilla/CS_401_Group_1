@@ -9,12 +9,16 @@ import model.User;
 
 
 public class UserData { 
-
+	private static UserData uniqueInstance = new UserData();
     private ConcurrentHashMap<Integer, User> usersByLoginHash;
     private ConcurrentHashMap<String, User> usersById;
     private ConcurrentHashMap<String, Conversation> conversations;
+    
+    public static synchronized UserData getInstance() {
+    		return uniqueInstance;
+    }
 
-    public UserData() {
+    protected UserData() {
         usersByLoginHash = new ConcurrentHashMap<>();
         usersById = new ConcurrentHashMap<>();
         conversations = new ConcurrentHashMap<>();
@@ -60,4 +64,5 @@ public class UserData {
             user.getUnreadConversations().add(conversationId);
         }
     }
+
 }

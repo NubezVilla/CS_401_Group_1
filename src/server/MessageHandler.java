@@ -100,12 +100,12 @@ public class MessageHandler {
 		 */
 		Message messageToSend = null;
 
-		if (!(obj.getPayload() instanceof Message)) {
+		if (!(obj.getPayload() instanceof String)) {
 			sendResponse(new Message("INVALID PAYLOAD: MESSAGE", "Server"), ResponseType.MESSAGE_NOT_SENT);
 	        return;
 		}
 		else {
-			messageToSend = (Message) obj.getPayload();
+			messageToSend = new Message((String)obj.getPayload(), senderID);
 		}
 		logQueue.add(messageToSend); 
 		// Auto-save logs when queue reaches threshold
@@ -176,7 +176,7 @@ public class MessageHandler {
 				e.printStackTrace();
 			}
 		}
-		sendResponse(new Message("MESSAGE SENT", "Server"), ResponseType.MESSAGE_SENT);
+		sendResponse(messageToSend, ResponseType.MESSAGE_SENT);
     	
 	}
 	

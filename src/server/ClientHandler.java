@@ -69,7 +69,8 @@ public class ClientHandler implements Runnable {
 	        //make the necessary handle objects
 	        authenticateHandle = new AuthenticateHandler(out, in);
 			messageHandle = new MessageHandler(out);
-	        conversationHandle = new ConversationHandler(out, in);
+	        conversationHandle = new ConversationHandler(out, in, this);
+	        
 			while(!isLoggedIn) {
 				
 				Wrapper expectedLoginRequest = (Wrapper) in.readObject();
@@ -177,7 +178,11 @@ public class ClientHandler implements Runnable {
 			        	System.out.println("Updating active conversation");
 			        	handleUpdatingActiveConversation(out, receivedObject);
 			        	break;
-	
+			        	
+			        case SEARCH_SIMILAR_USERS:
+				        	System.out.println("Searching for users");
+				        	authenticateHandle.handleSearchSimilarUsers(out, receivedObject);
+				        	break;
 			        default:
 			            System.out.println("Invalid Request");
 			            break;
