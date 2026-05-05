@@ -24,18 +24,23 @@ public class AuthenticateHandlerTest {
 
     @BeforeEach
     public void setUp() throws IOException {
-     
+    	// Create fake client acknowledgements for ResponseHandler.sendWithRetry()
+    	// handleLogin sends user data first, then conversation data,
+    	// so the test input stream needs two DATA_RECEIVED responses.
+    	ByteArrayOutputStream dummyOutputBytes = new ByteArrayOutputStream();
+    	ObjectOutputStream dummyOut = new ObjectOutputStream(dummyOutputBytes);
+
+    	dummyOut.writeObject(new Wrapper(new Message("received user", "Client"), ResponseType.DATA_RECEIVED));
+    	dummyOut.writeObject(new Wrapper(new Message("received conversations", "Client"), ResponseType.DATA_RECEIVED));
+    	dummyOut.flush();
+
+    	ByteArrayInputStream dummyInBais = new ByteArrayInputStream(dummyOutputBytes.toByteArray());
+    	in = new ObjectInputStream(dummyInBais); 
+    	
         outputCatcher = new ByteArrayOutputStream();
         out = new ObjectOutputStream(outputCatcher);
 
-        //i need to create an input stream
-        //make an outputstream first to satisfy java
-        ByteArrayOutputStream dummyOutputBytes = new ByteArrayOutputStream();
-        ObjectOutputStream dummyOut = new ObjectOutputStream(dummyOutputBytes);
-        dummyOut.flush(); 
-        //then get the input stream
-        ByteArrayInputStream dummyInBais = new ByteArrayInputStream(dummyOutputBytes.toByteArray());
-        in = new ObjectInputStream(dummyInBais);
+        
 
         authHandler = new AuthenticateHandler(out, in);
 
@@ -149,5 +154,84 @@ public class AuthenticateHandlerTest {
         assertFalse(result, "isLoggedIn should be returned as false upon successful logout.");
         assertFalse(customLogoutHandler.isLoggedIn(), "Internal state should be false.");
         assertTrue(dummySocket.isClosed(), "Client socket should be closed after successful logout.");
+    } 
+ 
+ 
+    @Test
+    public void testHandleRegister_Success_ITUser() throws Exception {
+    UserData mockDatabase = new UserData();
+
+    User itUser = new User("admin", "adminpass");
+    itUser.setIT(true);
+    mockDatabase.addUser(itUser);
+
+    Server.setTestUserData(mockDatabase);
+
+    FileManager dummyFileManager = new FileManager() {
+        @Override
+        public synchronized void saveUser(User user) {}
+    };
+    Server.setTestFileManager(dummyFileManager);
+
+    AuthenticateHandler handler = new AuthenticateHandler(out, in);
+
+    java.lang.reflect.Field userField = AuthenticateHandler.class.getDeclaredField("userAccount");
+    userField.setAccessible(true);
+    userField.set(handler, itUser);
+
+    User newUser = new User("newuser", "newpass");
+    Wrapper request = new Wrapper(newUser, RequestType.REGISTER);
+
+    handler.handleRegister(out, request);
+
+    assertNotNull(Server.getUserData(newUser.getLoginInfo().hashCode()));
+} 
+    @Test
+    public void testHandleRegister_DuplicateUser_Fails() throws Exception {
+        UserData mockDatabase = new UserData();
+
+        User itUser = new User("admin", "adminpass");
+        itUser.setIT(true);
+
+        User existingUser = new User("sameuser", "samepass");
+
+        mockDatabase.addUser(itUser);
+        mockDatabase.addUser(existingUser);
+
+        Server.setTestUserData(mockDatabase);
+
+        FileManager dummyFileManager = new FileManager() {
+            @Override
+            public synchronized void saveUser(User user) {}
+        };
+        Server.setTestFileManager(dummyFileManager);
+
+        AuthenticateHandler handler = new AuthenticateHandler(out, in);
+
+        java.lang.reflect.Field userField = AuthenticateHandler.class.getDeclaredField("userAccount");
+        userField.setAccessible(true);
+        userField.set(handler, itUser);
+
+        User duplicateUser = new User("sameuser", "samepass");
+        Wrapper request = new Wrapper(duplicateUser, RequestType.REGISTER);
+
+        handler.handleRegister(out, request);
+
+        assertEquals(existingUser, Server.getUserData(existingUser.getLoginInfo().hashCode()));
+    }
+    @Test
+    public void testHandleGetUserInfo_ByStringID_Success() {
+        UserData mockDatabase = new UserData();
+
+        User user = new User("testuser", "testpass");
+        mockDatabase.addUser(user);
+
+        Server.setTestUserData(mockDatabase);
+
+        Wrapper request = new Wrapper(user.getUserID(), RequestType.GET_USER_INFO);
+
+        assertDoesNotThrow(() -> {
+            authHandler.handleGetUserInfo(out, request);
+        });
     }
 }

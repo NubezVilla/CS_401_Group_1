@@ -167,25 +167,78 @@ public class AuthenticateHandler {
     }
  
 	void handleRegister(ObjectOutputStream out, Wrapper obj) {
-		/* 
-		 * This method must create a new user. The user
-		 * must be added to UserData. The new user information
-		 * must be saved to file as well. This can be done here
-		 * or during logout?
-		 */
-		sendResponse(new Message("REGISTERING NEW USER", "Server"), ResponseType.REGISTER_USER_SUCCESS);
+		/*
+	     * IT-only method for creating a new user.
+	     * Payload is expected to be a User object.
+	     */
+
+	    if (userAccount == null || !userAccount.isIT()) {
+	        sendResponse(new Message("UNAUTHORIZED USER", "Server"), ResponseType.REGISTER_USER_FAIL);
+	        return;
+	    }
+
+	    if (!(obj.getPayload() instanceof User)) {
+	        sendResponse(new Message("INVALID PAYLOAD: USER REQUIRED", "Server"), ResponseType.REGISTER_USER_FAIL);
+	        return;
+	    }
+
+	    User newUser = (User) obj.getPayload();
+
+	    for (User existingUser : Server.getAllUsers()) {
+	        if (existingUser.getLoginInfo().equals(newUser.getLoginInfo())) {
+	            sendResponse(new Message("DUPLICATE USER", "Server"), ResponseType.REGISTER_USER_FAIL);
+	            return;
+	        }
+	    }
+
+	    Server.addUserData(newUser);
+	    Server.saveUserData(newUser);
+
+	    sendResponse(new Message("REGISTERED NEW USER", "Server"), ResponseType.REGISTER_USER_SUCCESS);
+	} 
+    
 		
-	}
 
     
 	void handleGetUserInfo(ObjectOutputStream out, Wrapper obj) {
-		/* 
-		 * This method retrieves a User's information from UserData. 
-		 */
-		sendResponse(new Message("RETRIEVING USER INFO", "Server"), ResponseType.USER_INFO_SENT);
-		
-	}
-    
+		/*
+	     * Retrieves user information from UserData.
+	     * Payload can be either:
+	     * 1. User object
+	     * 2. String userID
+	     */
+
+	    String userID;
+
+	    if (obj.getPayload() instanceof User) {
+	        User requestedUser = (User) obj.getPayload();
+	        userID = requestedUser.getUserID();
+	    } else if (obj.getPayload() instanceof String) {
+	        userID = (String) obj.getPayload();
+	    } else {
+	        sendResponse(new Message("INVALID PAYLOAD: USER OR USER ID REQUIRED", "Server"),
+	                ResponseType.USER_INFO_NOT_SENT);
+	        return;
+	    }
+
+	    User foundUser = Server.getUserByIdString(userID);
+
+	    if (foundUser == null) {
+	        sendResponse(new Message("USER NOT FOUND", "Server"),
+	                ResponseType.USER_INFO_NOT_SENT);
+	        return;
+	    }
+
+	    try {
+	        Wrapper response = new Wrapper(foundUser, ResponseType.USER_INFO_SENT);
+	        out.writeObject(response);
+	        out.flush();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        sendResponse(new Message("FAILED TO SEND USER INFO", "Server"),
+	                ResponseType.USER_INFO_NOT_SENT);
+	    } 
+	} 
     
     // Getters so ClientHandler can sync state after login
     public boolean isLoggedIn() { return isLoggedIn; }

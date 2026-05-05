@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -97,7 +98,7 @@ public class Server {
 	}
 	
 	
-	/*** UserData class methods ***/
+	/*** UserData class methods ***/ 
 	public static User getUserData(int loginHashCode) {
 		return userDataHandle.getUserByLoginHash(loginHashCode);
 	}
@@ -114,6 +115,38 @@ public class Server {
 		userDataHandle.updateUnreadMessage(userID, activeConversationID);
 	}
 	
+	public static ArrayList<Conversation> getConversationsByUser(User user) {
+	    ArrayList<Conversation> result = new ArrayList<>();
+
+	    if (user == null) {
+	        return result;
+	    }
+
+	    for (String conversationID : user.getConversations()) {
+	        Conversation conversation = userDataHandle.getConversation(conversationID);
+
+	        if (conversation != null) {
+	            result.add(conversation);
+	        }
+	    }
+
+	    return result;
+	}
+	public static void addUserData(User user) {
+	    userDataHandle.addUser(user);
+	}
+
+	public static void addConversation(Conversation conversation) {
+	    userDataHandle.addConversation(conversation);
+	}
+
+	public static User getUserByIdString(String userID) {
+	    return userDataHandle.getUserById(userID);
+	}
+
+	public static ArrayList<User> getAllUsers() {
+	    return userDataHandle.getAllUsers();
+	}
 
 	/*** 
 	 * TEST HELPER METHODS 
@@ -125,7 +158,7 @@ public class Server {
 	
 	public static void setTestFileManager(FileManager testManager) {
 		fileManagerHandle = testManager;
-	}
+	} 
 	
 	
 }

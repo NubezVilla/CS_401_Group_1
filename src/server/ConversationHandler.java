@@ -3,6 +3,7 @@ package server;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 
 import model.Conversation;
 import model.Message;
@@ -24,29 +25,89 @@ public class ConversationHandler {
 		this.responseHandle = new ResponseHandler(out, in);
 	}
 	
-	void handleCreateConversation(Wrapper obj) {
-		/* 
-		 * This method must create a new conversation. A conversation
-		 * involves 2 Users. The two User sockets must be able to send
-		 * messages to each other. The socket for the clients
-		 * are found in ClientList<ClientHandler, User> in the Server.
-		 *  
-		 */
-		sendResponse( new Message("CREAING CONVERSATION", "Server"), ResponseType.CREATE_CONVERSATION_SUCCESS);
-		
-		
-	}
+	void handleCreateConversation(Wrapper obj, String currentUserID) {
+	    if (!(obj.getPayload() instanceof User)) {
+	        sendResponse(new Message("INVALID PAYLOAD: USER REQUIRED", "Server"),
+	                ResponseType.CREATE_CONVERSATION_FAIL);
+	        return;
+	    }
+
+	    User incomingUser = (User) obj.getPayload();
+	    User otherUser = Server.getUserbyID(incomingUser);
+	    User currentUser = Server.getUserByIdString(currentUserID);
+
+	    if (otherUser == null || currentUser == null) {
+	        sendResponse(new Message("USER NOT FOUND", "Server"),
+	                ResponseType.CREATE_CONVERSATION_FAIL);
+	        return;
+	    }
+
+	    Conversation newConversation = new Conversation(currentUserID, otherUser.getUserID());
+
+	    currentUser.getConversations().add(newConversation.getID());
+	    otherUser.getConversations().add(newConversation.getID());
+
+	    Server.addConversation(newConversation);
+	    Server.saveConversation(newConversation);
+	    Server.saveUserData(currentUser);
+	    Server.saveUserData(otherUser);
+
+	    Broadcast broadcast = new Broadcast();
+	    broadcast.broadcastNewConversation(newConversation, currentUserID);
+
+	    try {
+	        Wrapper response = new Wrapper(newConversation, ResponseType.CREATE_CONVERSATION_SUCCESS);
+	        out.writeObject(response);
+	        out.flush();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        sendResponse(new Message("FAILED TO SEND NEW CONVERSATION", "Server"),
+	                ResponseType.CREATE_CONVERSATION_FAIL);
+	    }
+	} 
 	
-	void handleCreateGroupConversation(ObjectOutputStream out, Wrapper obj) {
 		/* 
 		 * This method must send a message to multiple Clients. Each 
 		 * GroupConversation should have a list of participants.
 		 * Get the UserIDs and the correct sockets you have to
 		 * pass along the message.
-		 */
-		sendResponse(new Message("CREATING GROUP CONVERSATION", "Server"), ResponseType.GROUP_CREATION_SUCCESS);
+		 */ 
+		void handleCreateGroupConversation(ObjectOutputStream out, Wrapper obj, String currentUserID) {
+		    if (!(obj.getPayload() instanceof Conversation)) {
+		        sendResponse(new Message("INVALID PAYLOAD: GROUP CONVERSATION REQUIRED", "Server"),
+		                ResponseType.GROUP_CREATION_FAIL);
+		        return;
+		    }
+
+		    Conversation groupConversation = (Conversation) obj.getPayload();
+
+		    Server.addConversation(groupConversation);
+		    Server.saveConversation(groupConversation);
+
+		    for (String userID : groupConversation.getParticipants()) {
+		        User user = Server.getUserByIdString(userID);
+
+		        if (user != null) {
+		            user.getConversations().add(groupConversation.getID());
+		            Server.saveUserData(user);
+		        }
+		    }
+
+		    Broadcast broadcast = new Broadcast();
+		    broadcast.broadcastNewConversation(groupConversation, currentUserID);
+
+		    try {
+		        Wrapper response = new Wrapper(groupConversation, ResponseType.GROUP_CREATION_SUCCESS);
+		        out.writeObject(response);
+		        out.flush();
+		    } catch (IOException e) {
+		        e.printStackTrace();
+		        sendResponse(new Message("FAILED TO SEND GROUP CONVERSATION", "Server"),
+		                ResponseType.GROUP_CREATION_FAIL);
+		    }
+		}
 		
-	}
+		
 	
 	void handleGetConversation(Wrapper obj, String activeConversationID, boolean isIT) {
 		/* 
@@ -223,8 +284,102 @@ public class ConversationHandler {
 		
 	}
 	
-	
-	
+	void handleQueryConversationLog(Wrapper obj, boolean isIT) {
+	    /*
+	     * IT users can query conversation logs.
+	     * Payload can be:
+	     * 1. User object -> returns all conversations for that user
+	     * 2. String conversationID -> returns that specific conversation
+	     * Response payload is ArrayList<Conversation>.
+	     */
+
+	    if (!isIT) {
+	        sendResponse(new Message("UNAUTHORIZED USER", "Server"),
+	                ResponseType.CONVERSATION_LOG_NOT_SENT);
+	        return;
+	    }
+
+	    Object payload = obj.getPayload();
+	    ArrayList<Conversation> results = new ArrayList<>();
+
+	    if (payload instanceof User) {
+	        User requestedUser = (User) payload;
+	        User foundUser = Server.getUserbyID(requestedUser);
+
+	        if (foundUser == null) {
+	            sendResponse(new Message("USER NOT FOUND", "Server"),
+	                    ResponseType.CONVERSATION_LOG_NOT_SENT);
+	            return;
+	        }
+
+	        results = Server.getConversationsByUser(foundUser);
+
+	    } else if (payload instanceof String) {
+	        String conversationID = (String) payload;
+	        Conversation conversation = Server.getConversation(conversationID);
+
+	        if (conversation == null) {
+	            sendResponse(new Message("CONVERSATION NOT FOUND", "Server"),
+	                    ResponseType.CONVERSATION_LOG_NOT_SENT);
+	            return;
+	        }
+
+	        results.add(conversation);
+
+	    } else {
+	        sendResponse(new Message("INVALID PAYLOAD: USER OR CONVERSATION ID REQUIRED", "Server"),
+	                ResponseType.CONVERSATION_LOG_NOT_SENT);
+	        return;
+	    }
+
+	    try {
+	        Wrapper response = new Wrapper(results, ResponseType.CONVERSATION_LOG_QUERY_RESULT);
+	        out.writeObject(response);
+	        out.flush();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        sendResponse(new Message("FAILED TO SEND CONVERSATION LOG QUERY RESULT", "Server"),
+	                ResponseType.CONVERSATION_LOG_NOT_SENT);
+	    }
+	} 
+	void handleRequestConversationLog(Wrapper obj, boolean isIT) {
+	    /*
+	     * IT users can request one full conversation log.
+	     * Payload is expected to be a String conversationID.
+	     * Response payload is a Conversation object.
+	     */
+
+	    if (!isIT) {
+	        sendResponse(new Message("UNAUTHORIZED USER", "Server"),
+	                ResponseType.CONVERSATION_LOG_NOT_SENT);
+	        return;
+	    }
+
+	    if (!(obj.getPayload() instanceof String)) {
+	        sendResponse(new Message("INVALID PAYLOAD: CONVERSATION ID REQUIRED", "Server"),
+	                ResponseType.CONVERSATION_LOG_NOT_SENT);
+	        return;
+	    }
+
+	    String conversationID = (String) obj.getPayload();
+	    Conversation conversation = Server.getConversation(conversationID);
+
+	    if (conversation == null) {
+	        sendResponse(new Message("CONVERSATION NOT FOUND", "Server"),
+	                ResponseType.CONVERSATION_LOG_NOT_SENT);
+	        return;
+	    }
+
+	    try {
+	        Wrapper response = new Wrapper(conversation, ResponseType.CONVERSATION_LOG_SENT);
+	        out.writeObject(response);
+	        out.flush();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        sendResponse(new Message("FAILED TO SEND CONVERSATION LOG", "Server"),
+	                ResponseType.CONVERSATION_LOG_NOT_SENT);
+	    }
+	}
 	
 	// Private helper to reduce repetitive try/catch blocks
 	private void sendResponse(Message msg, ResponseType responseType) {
