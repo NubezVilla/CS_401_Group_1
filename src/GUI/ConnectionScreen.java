@@ -56,7 +56,7 @@ public class ConnectionScreen extends JDialog{
 			new SwingWorker<Socket, Void>() {
 			    @Override
 			    protected Socket doInBackground() throws Exception {
-			        Thread.sleep(2000);
+			        Thread.sleep(1000);
 
 			        String ip = (String) selection.getSelectedItem();
 
