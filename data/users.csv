@@ -2,6 +2,6 @@ userId,username,password,realName,position,isIT
 1,justin,case,Server,Server,false
 2,user1,pass1,Allison Ray,Project Manager,false
 3,user2,pass2,Avalina Rodriguez,Software Engineer,false
-4,admin,admin123,IT Admin,IT,true
-5,user3,pass3,Jason Funderberker, Head Frog, true
-6,test1,test1,John Bonderant,threefold,false
+4,admin,admin123,IT Admin,Gamer,true
+5,user3,pass3,Jason Funderberker, Head Frog,true
+6,test1,test1,John Bonderant,Sevenfold,false

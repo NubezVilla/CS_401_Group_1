@@ -14,15 +14,12 @@ public class ConversationListModel extends AbstractListModel<Conversation> {
 	public int getSize() {
 		return listModel.size();
 	}
-	
-	public int size() {
-		return listModel.size();
-	}
 
 	@Override
 	public Conversation getElementAt(int index) {
 		return listModel.get(index);
 	}
+	
 	public void sortByRecentMessage() {
 		listModel.sort(
             Comparator.comparing(Conversation::getMostRecentMessageTimestamp).reversed()
@@ -67,6 +64,10 @@ public class ConversationListModel extends AbstractListModel<Conversation> {
 	public void removeAllElements() {
 		listModel.clear();
 		
+	}
+	
+	public boolean contains(Conversation c) {
+		return listModel.contains(c);
 	}
 
 	public void addAll(ArrayList<Conversation> conversations) {

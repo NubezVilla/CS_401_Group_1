@@ -47,34 +47,37 @@ public class LogListPanel extends JPanel {
 		c.gridx = 0;
 		userSearch = new UserSearchBar(client, u->{
 			JDialog searchReturns = new JDialog();
-			searchReturns.setLayout(new BoxLayout(searchReturns, BoxLayout.Y_AXIS));
+			searchReturns.getContentPane().setLayout(new BoxLayout(searchReturns.getContentPane(), BoxLayout.Y_AXIS));
 			searchReturns.setLocationRelativeTo(null);
 			ArrayList<Conversation> usersConversations = client.queryConversationLogsByUser(u);
 			if (usersConversations.size() == 0) {
 				JLabel error = new JLabel("No conversations found");
 				error.setFont(Fonts.error);
 				error.setAlignmentX(CENTER_ALIGNMENT);
-				searchReturns.add(error);
+				searchReturns.getContentPane().add(error);
 			}
 			else {
 				JLabel instruction = new JLabel("Select a log from the following list");
 				instruction.setFont(Fonts.display);
 				instruction.setAlignmentX(CENTER_ALIGNMENT);
-				searchReturns.add(instruction);
+				searchReturns.getContentPane().add(instruction);
 				
 				DefaultListModel<Conversation> responseModel = new DefaultListModel<Conversation>();
 				responseModel.addAll(usersConversations);
 				JList<Conversation> responseList = new JList<Conversation>(responseModel);
+				responseList.setCellRenderer(new LogListCellRenderer(client));
 				responseList.addListSelectionListener(e ->{
+					client.addLogToList(responseList.getSelectedValue().getID());
 					client.updateCurrentLog(responseList.getSelectedValue().getID());
 					searchReturns.dispose();
+					refreshMainScreen.run();
 				});
-				searchReturns.add(responseList);
+				searchReturns.getContentPane().add(responseList);
 			}
 			JButton close = new JButton("Close");
 			close.addActionListener(e -> searchReturns.dispose());
 			close.setAlignmentX(CENTER_ALIGNMENT);
-			searchReturns.add(close);
+			searchReturns.getContentPane().add(close);
 			searchReturns.pack();
 			searchReturns.setSize(searchReturns.getWidth() + 10, searchReturns.getHeight() + 10);
 			searchReturns.setVisible(true);
@@ -166,6 +169,7 @@ public class LogListPanel extends JPanel {
 		JList<Conversation> logsList = new JList<Conversation>(searchLogsModel);
 		logsList.setCellRenderer(new LogListCellRenderer(client));
 		logsList.addListSelectionListener(e -> {
+			client.addLogToList(logsList.getSelectedValue().getID());
 			client.updateCurrentLog(logsList.getSelectedValue().getID());
 			this.logsList.setSelectedValue(logsList.getSelectedValue(), true);
 			refreshMainScreen.run();

@@ -1,0 +1,14 @@
+type,GC
+creatorID,6
+groupName,TestingGang
+conversationId,2
+createdAt,2026-05-05T08:52:59.006051Z
+participants,2;3;5
+messages
+6,2026-05-05T08:53:16.605895100Z,A group message from John
+6,2026-05-05T08:53:20.239978500Z,And another
+6,2026-05-05T08:54:04.016582300Z,One more
+2,2026-05-05T08:54:25.516523400Z,Missing server notifs
+2,2026-05-05T08:54:29.778657900Z,But that's okay maybe
+3,2026-05-05T08:54:59.782574Z,Woop
+6,2026-05-05T09:21:00.273731800Z,another new message

@@ -30,7 +30,7 @@ public class ConversationListCellRenderer extends JLabel implements ListCellRend
 		}
 		else {
 			for(String p : value.getParticipants()) {
-				if (p != DataModel.getInstance().getCurrentUser().getUserID()) {
+				if (!p.equals(DataModel.getInstance().getCurrentUser().getUserID())) {
 					name = client.getUserByID(p).getName();
 				}
 			}

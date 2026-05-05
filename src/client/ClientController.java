@@ -148,12 +148,11 @@ public class ClientController implements ClientCalls {
     
     
     @Override
-    //TODO FIX THISSS
     public Boolean createNewITUser(String name, String position, String username, String password) {
         User thisUser = new User(username, password);
         thisUser.setName(name);
         thisUser.setPosition(position);
-        Wrapper resp = sendAndWait(thisUser, RequestType.REGISTER);
+        Wrapper resp = sendAndWait(thisUser, RequestType.REGISTER_IT);
         if(resp == null) {
         	return false;
         }
@@ -254,7 +253,7 @@ public class ClientController implements ClientCalls {
 	        		return;
 	        	}
         }
-        DataModel.getInstance().getCurrentConversation().addParticipant(u.getUserID());;
+        DataModel.getInstance().getCurrentConversation().addParticipant(u.getUserID());
     }
     
     
@@ -276,7 +275,6 @@ public class ClientController implements ClientCalls {
         }
         DataModel.getInstance().getCurrentConversation().removeParticipant(u.getUserID());
         if (u.equals(loggedUser)) {
-        		System.out.println("Not the father");
         		loggedUser.getConversations().remove(DataModel.getInstance().getCurrentConversation());
         		DataModel.getInstance().getConversationList().removeElement(DataModel.getInstance().getCurrentConversation());
         }
@@ -370,24 +368,20 @@ public class ClientController implements ClientCalls {
     @Override
     public Boolean updateUser(User target, String newName, String newPosition, String newUsername, String newPassword) {
         User newUser = target;
-    	newUser.setLoginInfo(newUsername, newPassword);
+        newUser.setLoginInfo(newUsername, newPassword);
         newUser.setName(newName);
         newUser.setPosition(newPosition);
         Wrapper resp = sendAndWait(newUser, RequestType.UPDATE_USER_INFO);
-        if(resp.getResponseType() != ResponseType.UPDATED_USER_RECEIVED){
-        	if(resp.getResponseType() == ResponseType.UPDATED_USER_NOT_RECEIVED) {
-        		return null;
-        	}
-        	while(resp != null && resp.getResponseType() != ResponseType.UPDATED_USER_RECEIVED) {
-        		resp = waitForResponse();
-        	}
-        	if(resp == null) {
-        		return null;
-        	}
+        if(resp == null) {
+    			return null;
         }
-        target.setLoginInfo(newUsername, newPassword);
-        target.setName(newName);
-        target.setPosition(newPosition);
+        if(resp.getResponseType() != ResponseType.UPDATED_USER_RECEIVED){
+	        	if(resp.getResponseType() == ResponseType.UPDATED_USER_NOT_RECEIVED) {
+	        		return null;
+	        	}
+        }
+        if (!newName.isEmpty()) {target.setName(newName);}
+        if (!newPosition.isEmpty()){target.setPosition(newPosition);}
         return true;
     }
 
@@ -471,7 +465,13 @@ public class ClientController implements ClientCalls {
     
     @Override
     public void updateCurrentLog(String id) {
-    	Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
+    		int index = DataModel.getInstance().getLogsList().findConversationIndex(id);
+    		DataModel.getInstance().setCurrentLog(index);
+    }
+    
+    @Override
+    public void addLogToList(String id) {
+    		Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
         if(resp.getResponseType() != ResponseType.CONVERSATION_SENT){
         	if(resp.getResponseType() == ResponseType.CONVERSATION_SENT) {
         		return ;
@@ -484,13 +484,12 @@ public class ClientController implements ClientCalls {
         	}
         }
         if(resp.getPayload() instanceof GroupConversation) {
-        	GroupConversation groupLog = (GroupConversation) resp.getPayload();
-        	DataModel.getInstance().setCurrentLog(groupLog);
-        	
+        		GroupConversation log = (GroupConversation) resp.getPayload();
+        		DataModel.getInstance().addLogToList(log);
         }
         else {
-        	Conversation groupLog = (Conversation) resp.getPayload();
-        	DataModel.getInstance().setCurrentLog(groupLog);
+        		Conversation log = (Conversation) resp.getPayload();
+        		DataModel.getInstance().addLogToList(log);
         }
     }
 

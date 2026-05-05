@@ -1,0 +1,9 @@
+type,DM
+conversationId,1
+createdAt,2026-05-05T08:47:56.174847700Z
+participants,3;6
+messages
+6,2026-05-05T08:48:03.649420400Z,This is one message from John
+3,2026-05-05T08:48:20.515014500Z,This is one message from ava
+3,2026-05-05T08:48:25.322482300Z,and a second, just for gtood measure
+6,2026-05-05T09:20:49.638991500Z,Check this?

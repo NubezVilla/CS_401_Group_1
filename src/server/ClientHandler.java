@@ -95,15 +95,6 @@ public class ClientHandler implements Runnable {
 		       //the first thing the client handler should do is check the request type
 		        RequestType request = receivedObject.getRequestType();
 		        switch(request) {
-		        /*
-		         * THIS CASE IS BEING HANDLED OUTISDE THIS WHILE STATEMENT
-		         * A USER ONLY NEEDS TO LOGIN ONCE.
-		        	//Alejandro
-			        case LOGIN:
-			            System.out.println("Logging in");
-			            handleLogin(out, receivedObject);
-			            break;
-		         */
 		        
 			        //Alejandro
 			        case LOGOUT:
@@ -114,7 +105,12 @@ public class ClientHandler implements Runnable {
 			        //Riya
 			        case REGISTER:
 			            System.out.println("Registering user");
-			            authenticateHandle.handleRegister(out, receivedObject);
+			            authenticateHandle.handleRegister(out, receivedObject, false);
+			            break;
+			            
+			        case REGISTER_IT:
+			        		System.out.println("Registering IT user");
+			            authenticateHandle.handleRegister(out, receivedObject, true);
 			            break;
 			        //Riya
 			        case GET_USER_INFO:
@@ -157,20 +153,7 @@ public class ClientHandler implements Runnable {
 			            System.out.println("Sending message");
 			            messageHandle.handleSendMessage(receivedObject, logQueue, activeConversationID, userAccount.getUserID());
 			            break;
-		
-			            /*** DISCUSS WITH GROUP REGARDING GET_MESSAGES AND GET_NEW_MESSAGES ***/
-			        //Riya    
-			       /* case GET_MESSAGES:
-			            System.out.println("Getting messages");
-			            messageHandle.handleGetMessages(out, receivedObject);
-			            break;
-		
-			        //Riya    
-			        case GET_NEW_MESSAGES:
-			            System.out.println("Getting new messages");
-			            messageHandle.handleGetNewMessages(out, receivedObject);
-			            break;
-			        */ 
+	
 			        //Alejandro
 			        case UPDATE_ACTIVE_CONVERSATION:
 				        	System.out.println("Updating active conversation");
@@ -195,6 +178,10 @@ public class ClientHandler implements Runnable {
 			        case SEARCH_SIMILAR_USERS:
 			        		System.out.println("Searching users");
 			        		authenticateHandle.handleSearchSimilarUsers(out, receivedObject );
+			        		break;
+			        case UPDATE_USER_INFO:
+			        		System.out.println("Updating user info");
+			        		authenticateHandle.handleUpdateUserInfo(receivedObject);
 			        default:
 			            System.out.println("Invalid Request" + request.name());
 			            break;

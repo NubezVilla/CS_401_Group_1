@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import client.DataModel;
 import model.Conversation;
@@ -56,7 +57,6 @@ public class ConversationTopBar extends JPanel {
 		addMember = new JButton("+");
 		addMember.addActionListener(e ->{
 			setupAddUserDialog();
-			refreshMainPage.run();
 		});
 		removeMember = new JButton("−");
 		removeMember.addActionListener(e->removeParticipantsMenu.show(removeMember, 0, removeMember.getHeight()));
@@ -99,8 +99,8 @@ public class ConversationTopBar extends JPanel {
 		if(DataModel.getInstance().getCurrentConversation().getClass() == GroupConversation.class) {
 			convertToGroup.setVisible(false);
 			leaveGroupChat.setVisible(true);
-			if (((GroupConversation)DataModel.getInstance().getCurrentConversation()).getCreator() ==
-					DataModel.getInstance().getCurrentUser().getUserID()) {
+			if (((GroupConversation)DataModel.getInstance().getCurrentConversation()).getCreator().
+					equals(DataModel.getInstance().getCurrentUser().getUserID())) {
 				modifyInfo.setVisible(true);
 				addMember.setVisible(true);
 				removeMember.setVisible(true);
@@ -118,6 +118,8 @@ public class ConversationTopBar extends JPanel {
 			removeMember.setVisible(false);
 			convertToGroup.setVisible(true);
 		}
+		participantsMenu.setVisible(false);
+		removeParticipantsMenu.setVisible(false);
 		participantsMenu.removeAll();
 		removeParticipantsMenu.removeAll();
 		for (String i : DataModel.getInstance().getCurrentConversation().getParticipants()) {
@@ -126,13 +128,21 @@ public class ConversationTopBar extends JPanel {
 			if (!u.equals(DataModel.getInstance().getCurrentUser())) {
 				UserDisplayComponent temp = new UserDisplayComponent(u, false);
 				temp.setOnClick(() -> {
-						client.removeUserFromGroupChat(u);
-						removeParticipantsMenu.setVisible(false);
-						refreshMainPage.run();
+				    removeParticipantsMenu.setVisible(false);
+				    SwingUtilities.invokeLater(() -> {
+				        User userToRemove = client.getUserByID(u.getUserID());
+				        client.removeUserFromGroupChat(userToRemove);
+				        refreshMainPage.run();
+				    });
 				});
 				removeParticipantsMenu.add(temp);
 			}
 		}
+		participantsMenu.revalidate();
+		participantsMenu.repaint();
+
+		removeParticipantsMenu.revalidate();
+		removeParticipantsMenu.repaint();
 	}
 	
 	private String getOtherParticipantsName(Conversation c) {

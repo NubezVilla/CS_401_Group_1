@@ -1,7 +1,9 @@
 package GUI;
 
+import java.awt.Color;
 import java.awt.Component;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
@@ -33,6 +35,8 @@ public class LogListCellRenderer extends JLabel implements ListCellRenderer<Conv
 					+ " and " + client.getUserByID((String)ids[1]).getName();
 		}
 		setText("<html>" + conversationID + "<br>" + participants + "</html");
+		
+		this.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.black));
 		//Everything below this is default
         if (isSelected) {
             setBackground(list.getSelectionBackground());

@@ -36,5 +36,5 @@ public enum RequestType {
     
 // Just added after
     SEARCH_SIMILAR_USERS, //Sends a String of Matching(find users that names and IDs start with Matching)
-    QUERY_CONVERSATION_LOG, REQUEST_CONVERSATION_LOG,
+    QUERY_CONVERSATION_LOG, REQUEST_CONVERSATION_LOG, REGISTER_IT,
 }; 

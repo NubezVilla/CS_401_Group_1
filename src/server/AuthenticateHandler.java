@@ -148,12 +148,13 @@ public class AuthenticateHandler {
 		return isLoggedIn;
     }
  
-	void handleRegister(ObjectOutputStream out, Wrapper obj) {
+	void handleRegister(ObjectOutputStream out, Wrapper obj, boolean isIT) {
 		if (obj.getPayload() instanceof ArrayList<?>) {
 			ArrayList<String> userInfo = (ArrayList<String>) obj.getPayload();
 			User newUser = new User(userInfo.get(0), userInfo.get(1));
 			newUser.setName(userInfo.get(2));
 			newUser.setPosition(userInfo.get(3));
+			newUser.setIT(isIT);
 			for (User existingUser : Server.getAllUsers()) {
 				if (existingUser.getLoginInfo().equals(newUser.getLoginInfo())) {
 					sendResponse(new Message("DUPLICATE USER", "Server"), ResponseType.REGISTER_USER_FAIL);
@@ -188,12 +189,40 @@ public class AuthenticateHandler {
 						u.getUserID().startsWith(matching)) {
 					response.add(u);
 				}
+				//exclude self
+				if(u.equals(userAccount)) {
+					response.remove(u);
+				}
 			}
+			
 			sendResponse(response, ResponseType.USER_INFO_SENT);
 		}
 	}
    
-
+	void handleUpdateUserInfo(Wrapper obj) {
+		if (obj.getPayload() instanceof User) {
+			User changes = (User)obj.getPayload();
+			User working = UserData.getInstance().getUserById(((User)obj.getPayload()).getUserID());
+			if (!changes.getName().isEmpty()) {
+				working.setName(changes.getName());
+			}
+			if (!changes.getPosition().isEmpty()) {
+				working.setPosition(changes.getPosition());
+			}
+			String newUN = working.getLoginInfo().getUserName();
+			if (!changes.getLoginInfo().getUserName().isEmpty()) {
+				newUN = changes.getLoginInfo().getUserName();
+			}
+			String newPW =  working.getLoginInfo().getPassword();
+			if (!changes.getLoginInfo().getPassword().isEmpty()) {
+				newPW = changes.getLoginInfo().getPassword();
+			}
+			working.setLoginInfo(newUN, newPW);
+			Server.saveUserData(working);
+			
+			sendResponse(null, ResponseType.UPDATED_USER_RECEIVED);
+		}
+	}
 	  
     
     // Getters so ClientHandler can sync state after login

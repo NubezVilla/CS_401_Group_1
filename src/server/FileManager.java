@@ -149,22 +149,24 @@ public class FileManager {
         }
 
         reader.close();
+        if (type.equals("GC")) {
+            GroupConversation base = new GroupConversation(created, creator);
+            	base.setName(groupName);
+            	for (String p : participants) {
+                    base.addParticipant(p);
+                    UserData.getInstance().getUserById(p).addConversation(base.getID());
+            }
+            for (Message m : messages) {
+            		base.addMessage(m);
+            }
 
+            return base;
+        }
         Conversation base = new Conversation(created);
 
         for (String p : participants) {
             base.addParticipant(p);
-        }
-
-        if (type.equals("GC")) {
-            GroupConversation gc = new GroupConversation(base, creator, created);
-            gc.setName(groupName);
-
-            for (Message m : messages) {
-                gc.addMessage(m);
-            }
-
-            return gc;
+            UserData.getInstance().getUserById(p).addConversation(base.getID());
         }
 
         for (Message m : messages) {

@@ -21,12 +21,12 @@ public class DataModel {
 	
 	private User serverUser;
 	private Conversation reportsConversation;
-	private DefaultListModel<Conversation> logsList;
+	private ConversationListModel logsList;
 	private Conversation currentLog;
 	private MessageListModel currentLogMessageList;
 
 	protected DataModel() {
-		logsList = new DefaultListModel<Conversation>();
+		logsList = new ConversationListModel();
 		currentLogMessageList = new MessageListModel();
 		conversationList = new ConversationListModel();
 		currentConversationMessageList = new MessageListModel();
@@ -91,11 +91,13 @@ public class DataModel {
 	}
 
 	
-//	Changed so that it takes any conversation that the server has, not just the one that the user is connected to
-//	Makes more sense because it's specifically for IT users
-	protected void setCurrentLog(Conversation c) {
-		currentLog = c;
-		currentLogMessageList.setMessages(c.getMessages());
+	protected void addLogToList(Conversation c) {
+		logsList.add(logsList.getSize(), c);
+	}
+	
+	protected void setCurrentLog(int index) {
+		currentLog = logsList.getElementAt(index);
+		currentLogMessageList.setMessages(logsList.getElementAt(index).getMessages());
 	}
 	
 	
@@ -104,13 +106,10 @@ public class DataModel {
 //		currentLogMessageList.setMessages(logsList.elementAt(index).getMessages());
 //	}
 	
-	public DefaultListModel<Conversation> getLogsList(){
+	public ConversationListModel getLogsList(){
 		return logsList;
 	}
 	
-	protected void addLogToList(Conversation c) {
-		logsList.add(logsList.size(), c);
-	}
 	
 	public MessageListModel getCurrentLogMessageList() {
 		return currentLogMessageList;

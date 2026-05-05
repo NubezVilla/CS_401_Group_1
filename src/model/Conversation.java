@@ -52,7 +52,7 @@ public class Conversation implements Serializable {
 	}
 	
 	public HashSet<String> getParticipants(){
-		return participantIDs;
+		return new HashSet<String>(participantIDs);
 	}
 	
 	public ArrayList<Message> getMessages(){

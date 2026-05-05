@@ -154,4 +154,6 @@ public interface ClientCalls {
 	 * @param c conversation to be added to the logs list and made the current log
 	 */
 	public void updateCurrentLog(String id);
+	
+	public void addLogToList(String id);
 }

@@ -66,19 +66,19 @@ public class ITScreen extends JPanel implements DisplayScreen{
 
 	
 	private void refreshConversationDisplayPane() {
-		if (DataModel.getInstance().getCurrentConversation() == null) {
+		if (DataModel.getInstance().getCurrentLog() == null) {
 			logDisplayPane.removeAll();
 			logDisplayPane.add(buildConversationDisplayPane(), BorderLayout.CENTER);
 		}
 		else if (logDisplayPane.getComponent(0) == logDisplay) {
 			logDisplay.refresh();
-	    		logList.updateSelectedConversation(DataModel.getInstance().getCurrentConversation());
+	    		logList.updateSelectedConversation(DataModel.getInstance().getCurrentLog());
 	    }
 	    else {
 	    		logDisplayPane.removeAll();
 	    		logDisplayPane.add(logDisplay, BorderLayout.CENTER);
 	    		logDisplay.refresh();
-	    		logList.updateSelectedConversation(DataModel.getInstance().getCurrentConversation());
+	    		logList.updateSelectedConversation(DataModel.getInstance().getCurrentLog());
 	    }
 		logDisplayPane.revalidate();
 		logDisplayPane.repaint();

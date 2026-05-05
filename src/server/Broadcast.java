@@ -29,7 +29,9 @@ public class Broadcast {
         Envelope e = new Envelope(m, UserData.getInstance().getConversation(conversationID).toHeader());
     		
         Wrapper wrapper = new Wrapper(e, ResponseType.PARTICIPANT_ADDED);
-
+        Conversation current = Server.getConversation(conversationID);
+        current.addMessage(m);
+        Server.saveConversation(current);
         sendToConversation(conversationID, wrapper);
     }
 
@@ -38,7 +40,9 @@ public class Broadcast {
         Envelope e = new Envelope(m, UserData.getInstance().getConversation(conversationID).toHeader());
     		
         Wrapper wrapper = new Wrapper(e, ResponseType.PARTICIPANT_REMOVED);
-
+        Conversation current = Server.getConversation(conversationID);
+        current.addMessage(m);
+        Server.saveConversation(current);
         sendToConversation(conversationID, wrapper);
     }
     
@@ -67,7 +71,6 @@ public class Broadcast {
     //this
     private void sendToConversationParticipantsExcept(String conversationID, Wrapper wrapper, String excludedUserID) {
         Conversation conversation = Server.getConversation(conversationID);
-
         if (conversation == null) {
             return;
         }

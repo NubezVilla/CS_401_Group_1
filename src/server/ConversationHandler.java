@@ -65,34 +65,34 @@ public class ConversationHandler {
 		 * Get the UserIDs and the correct sockets you have to
 		 * pass along the message.
 		 */ 
-		void handleCreateGroupConversation(ObjectOutputStream out, Wrapper obj, String currentUserID) {
-		    if (!(obj.getPayload() instanceof Conversation)) {
-		        sendResponse(new Message("INVALID PAYLOAD: GROUP CONVERSATION REQUIRED", "Server"),
-		                ResponseType.GROUP_CREATION_FAIL);
-		        return;
-		    }
-
-		    GroupConversation groupConversation = new GroupConversation((Conversation)obj.getPayload(), currentUserID);
-		    String userNames = "";
-		    for (Object u : groupConversation.getParticipants().toArray()) {
-		    		String name = UserData.getInstance().getUserById((String) u).getName();
-		    		userNames += name + ", ";
-		    }
-		    userNames = userNames.substring(0, userNames.length()-2);
-		    groupConversation.setName(userNames);
-		    Server.addConversation(groupConversation);
-		    Server.saveConversation(groupConversation);
-
-		    for (String userID : groupConversation.getParticipants()) {
-		        User user = Server.getUserByIdString(userID);
-
-		        if (user != null) {
-		            user.getConversations().add(groupConversation.getID());
-		            Server.saveUserData(user);
-		        }
-		    }
-		    sendResponse(groupConversation, ResponseType.GROUP_CREATION_SUCCESS);
+	void handleCreateGroupConversation(ObjectOutputStream out, Wrapper obj, String currentUserID) {
+		if (!(obj.getPayload() instanceof Conversation)) {
+			sendResponse(new Message("INVALID PAYLOAD: GROUP CONVERSATION REQUIRED", "Server"),
+					ResponseType.GROUP_CREATION_FAIL);
+			return;
 		}
+
+		GroupConversation groupConversation = new GroupConversation((Conversation)obj.getPayload(), currentUserID);
+		String userNames = "";
+		for (Object u : groupConversation.getParticipants().toArray()) {
+			String name = UserData.getInstance().getUserById((String) u).getName();
+			userNames += name + ", ";
+		}
+		userNames = userNames.substring(0, userNames.length()-2);
+		groupConversation.setName(userNames);
+		Server.addConversation(groupConversation);
+		Server.saveConversation(groupConversation);
+
+		for (String userID : groupConversation.getParticipants()) {
+			User user = Server.getUserByIdString(userID);
+			
+			if (user != null) {
+				user.getConversations().add(groupConversation.getID());
+				Server.saveUserData(user);
+		    }
+		}
+		sendResponse(groupConversation, ResponseType.GROUP_CREATION_SUCCESS);
+	}
 		
 		
 	
@@ -117,14 +117,7 @@ public class ConversationHandler {
 			sendResponse(new Message("CONVERSATION DOES NOT EXIST", "Server"), ResponseType.CONVERSATION_NOT_SENT);
 			return;
 		}
-		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.CONVERSATION_SENT);
-		//send the payload
-		try {
-			clientHandle.sendToClient(sendConversation);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		sendResponse(requestedConversation, ResponseType.CONVERSATION_SENT);
 		
 	}
 	

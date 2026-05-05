@@ -64,8 +64,7 @@ public class LoginScreen extends JPanel{
 		
 		
 		
-		JButton debugNext = new JButton("DEBUG: Pass Login");
-		debugNext.addActionListener(e -> controller.show(Screen.User));
+	
 		c.fill =  GridBagConstraints.BOTH;
 		c.weighty = 0.5;
 		this.add(title, c);
@@ -82,10 +81,6 @@ public class LoginScreen extends JPanel{
 		c.weighty = 0.5;
 		
 		this.add(Box.createGlue(), c);
-		
-		//DEBUG
-		c.weighty = 0.1;
-		this.add(debugNext, c);
 		
 	}
 }

@@ -1,0 +1,10 @@
+type,GC
+creatorID,6
+groupName,Avalina Rodriguez, John Bonderant
+conversationId,6
+createdAt,2026-05-05T10:59:11.366755100Z
+participants,3;5;6
+messages
+1,2026-05-05T11:19:02.260914900Z,Jason Funderberker has been added.
+1,2026-05-05T11:19:32.056844900Z,Jason Funderberker has been removed.
+1,2026-05-05T11:19:49.542854800Z,Jason Funderberker has been added.
