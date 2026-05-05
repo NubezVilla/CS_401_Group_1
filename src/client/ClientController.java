@@ -13,12 +13,10 @@ public class ClientController implements ClientCalls {
     private Wrapper response = null;
 
     private User loggedUser;
-    private DataModel convo;
     private static final long RESPONSE_TIMEOUT_MS = 10_000;
 
     public ClientController(ClientRunner run) {
         runner = run;
-        convo = new DataModel();
     }
     
     public void parseWrapper(Wrapper data) {
@@ -48,32 +46,11 @@ public class ClientController implements ClientCalls {
             case GROUP_NAME_CHANGED:
             	changeGroupName((GroupConversation) data.getPayload());
             case SENDING_CONVERSATIONS:
-            	Object conversations = data.getPayload();
-            	if(conversations instanceof ArrayList<?> list) {
-            		ArrayList<Conversation> result = new ArrayList<>();
-            		for(Object o: list) {
-            			if(o instanceof Conversation c) {
-            				result.add(c);
-            			}
-            		}
-            		getConversations(result);
-            	}
+            	deliverResponse(data);
             	break;
-            case SENDING_ACTIVE_USERS:
-            	Object users = data.getPayload();
-            	if(users instanceof ArrayList<?> list) {
-            		ArrayList<User> result = new ArrayList<>();
-            		for(Object o: list) {
-            			if(o instanceof User u) {
-            				result.add(u);
-            			}
-            		}
-            		getActiveUsers(result);
-            	}
-            case USER_LOGGED_IN, USER_LOGGED_OUT:
-            	updateActiveUsers(data);
             case PARTICIPANT_ADDED, PARTICIPANT_REMOVED:
             	groupConversationParticipantChanged(data);
+            break;
             default:
                 System.out.println("Unhandled response type: " + data.getResponseType());
                 break;
@@ -85,39 +62,63 @@ public class ClientController implements ClientCalls {
     
     @Override
     public boolean loginAttempt(String username, String password) {
-        LoginInfo information = new LoginInfo(username, password);
+        if(loginHelperUser(username, password)) {
+        		Wrapper resp = sendAndWait(null, ResponseType.LOGIN_SUCCESS);
+        		if(resp == null) {return false;}
+            if(resp.getResponseType() == ResponseType.SENDING_CONVERSATIONS) {
+            		loginHelperConversations(resp);	
+            		return true;
+            }
+        }
+        return false;
+    }
+
+	private boolean loginHelperUser(String username, String password) {
+    	LoginInfo information = new LoginInfo(username, password);
         Wrapper resp = sendAndWait(information, RequestType.LOGIN);
         if(resp == null) {
         	return false;
         }
         if(resp.getResponseType() == ResponseType.LOGIN_SUCCESS) {
+        		System.out.println("user get");
             loggedUser = (User) resp.getPayload();
-            convo.setCurrentUser(loggedUser);
+            DataModel.getInstance().setCurrentUser(loggedUser);
             return true;
         }
         return false;
     }
 
-    
-    
-    
+    private void loginHelperConversations(Wrapper data) {
+    		Object conversations = data.getPayload();
+    		if(conversations instanceof ArrayList<?> list) {
+    			ArrayList<Conversation> result = new ArrayList<>();
+    			for(Object o: list) {
+    				if(o instanceof Conversation c) {
+    					result.add(c);
+    				}
+    			}
+    		getConversations(result);
+    		}
+    }
+
     @Override
     public void logoutAttempt() {
         if(loggedUser == null) return;
         Wrapper resp = sendAndWait(loggedUser, RequestType.LOGOUT);
         if(resp.getResponseType() != ResponseType.LOGOUT_SUCCESS){
-        	if(resp.getResponseType() == ResponseType.LOGOUT_FAIL) {
-        		return;
-        	}
-        	while(resp != null && resp.getResponseType() != ResponseType.LOGOUT_SUCCESS) {
-        		resp = waitForResponse();
-        	}
-        	if(resp == null) {
-        		return;
-        	}
+	        	if(resp.getResponseType() == ResponseType.LOGOUT_FAIL) {
+	        		return;
+	        	}
+	        	while(resp != null && resp.getResponseType() != ResponseType.LOGOUT_SUCCESS) {
+	        		resp = waitForResponse();
+	        	}
+	        	if(resp == null) {
+	        		return;
+	        	}
         }
         loggedUser = null;
-        convo.setCurrentUser(null);
+        DataModel.getInstance().setCurrentUser(null);
+        //Need to terminate client here
     }
     
 
@@ -125,17 +126,18 @@ public class ClientController implements ClientCalls {
     
     @Override
     public Boolean createNewUser(String name, String position, String username, String password) {
-        LoginInfo thisUser = new LoginInfo(username, password);
-        thisUser.setName(name);
-        thisUser.setPosition(position);
-        Wrapper resp = sendAndWait(thisUser, RequestType.REGISTER);
+        ArrayList<String> userInfo = new ArrayList<String>();
+        userInfo.add(username);
+        userInfo.add(password);
+        userInfo.add(name);
+        userInfo.add(position);
+        Wrapper resp = sendAndWait(userInfo, RequestType.REGISTER);
         if(resp == null) {
         	return false;
         }
         if(resp.getResponseType() == ResponseType.REGISTER_USER_SUCCESS) {
-            loggedUser = (User) resp.getPayload();
-            convo.setCurrentUser(loggedUser);
-            return true;
+        		DataModel.getInstance().addUserToCache((User)resp.getPayload());
+        		return true;
         }
         return false;
     }
@@ -154,7 +156,7 @@ public class ClientController implements ClientCalls {
         }
         if(resp.getResponseType() == ResponseType.REGISTER_USER_SUCCESS) {
             loggedUser = (User) resp.getPayload();
-            convo.setCurrentUser(loggedUser);
+            DataModel.getInstance().setCurrentUser(loggedUser);
             return true;
         }
         return false;
@@ -165,6 +167,9 @@ public class ClientController implements ClientCalls {
     
     @Override
     public User getUserByID(String id) {
+    		if (DataModel.getInstance().getUserCache().containsKey(id)) {
+    			return DataModel.getInstance().getUserCache().get(id);
+    		}
         Wrapper resp = sendAndWait(id, RequestType.GET_USER_INFO);
         if(resp.getResponseType() != ResponseType.USER_INFO_SENT){
         	if(resp.getResponseType() == ResponseType.USER_INFO_NOT_SENT) {
@@ -177,7 +182,9 @@ public class ClientController implements ClientCalls {
         		return null;
         	}
         }
-        return (User)resp.getPayload();
+        User returned = (User)resp.getPayload();
+        DataModel.getInstance().getUserCache().put(returned.getUserID(), returned);
+        return returned;
     }
     
     
@@ -185,8 +192,8 @@ public class ClientController implements ClientCalls {
     
     @Override
     public void sendMessage(String text) {
-    	Message newMessage = new Message(text, convo.getCurrentUser().getUserID());
-    	Wrapper resp = sendAndWait(newMessage, RequestType.SEND_MESSAGE);
+    
+    	Wrapper resp = sendAndWait(text, RequestType.SEND_MESSAGE);
         if(resp.getResponseType() != ResponseType.MESSAGE_SENT){
         	if(resp.getResponseType() == ResponseType.MESSAGE_NOT_SENT) {
         		return;
@@ -198,15 +205,26 @@ public class ClientController implements ClientCalls {
         		return;
         	}
         }
-        convo.getCurrentConversation().addMessage(newMessage);
+        Message newMessage = (Message)resp.getPayload();
+        DataModel.getInstance().addMessageToCurrent(newMessage);
     }
     
     
     
     
     public void getMessage(Envelope E) {
-    	convo.addMessageToConversation(convo.getConversationAtIndex(convo.findConversationIndex(E.getID())), E.getMessage());
-    	loggedUser.addUnreadConversation(E.getID());
+    		System.out.println("Got a message");
+	    if (	DataModel.getInstance().getConversationList().findConversation(E.getID()) == null) {
+	    		System.out.println("Trying to find conversation");
+	    		Conversation temp = requestConversationById(E.getID());
+	    		DataModel.getInstance().addConversationToList(temp);
+	    		System.out.println("Convo found");
+	    }
+	    System.out.println("Adding message");
+	    	DataModel.getInstance().addMessageToConversation(DataModel.getInstance().getConversationList().findConversation(E.getID()), E.getMessage());
+	    if (!DataModel.getInstance().getCurrentConversation().getID().equals(E.getID())) {
+	    		loggedUser.addUnreadConversation(E.getID());
+	    }
     }
     
     
@@ -214,7 +232,7 @@ public class ClientController implements ClientCalls {
     
     @Override
     public void addUserToGroupChat(User u) {
-        if(!(convo.getCurrentConversation() instanceof GroupConversation)) {
+        if(!(DataModel.getInstance().getCurrentConversation() instanceof GroupConversation)) {
         	return;
         }
         Wrapper resp = sendAndWait(u, RequestType.ADD_PARTICIPANT);
@@ -229,7 +247,7 @@ public class ClientController implements ClientCalls {
         		return;
         	}
         }
-        convo.getCurrentConversation().addParticipant(u.getUserID());;
+        DataModel.getInstance().getCurrentConversation().addParticipant(u.getUserID());;
     }
     
     
@@ -237,7 +255,7 @@ public class ClientController implements ClientCalls {
 
     @Override
     public void removeUserFromGroupChat(User u) {
-    	if(!(convo.getCurrentConversation() instanceof GroupConversation)) {
+    	if(!(DataModel.getInstance().getCurrentConversation() instanceof GroupConversation)) {
         	return;
         }
         Wrapper resp = sendAndWait(u, RequestType.REMOVE_PARTICIPANT);
@@ -252,7 +270,7 @@ public class ClientController implements ClientCalls {
         		return;
         	}
         }
-        convo.getCurrentConversation().removeParticipant(u.getUserID());;
+        DataModel.getInstance().getCurrentConversation().removeParticipant(u.getUserID());;
     }
     
     
@@ -273,7 +291,7 @@ public class ClientController implements ClientCalls {
         	}
         }
         GroupConversation newConversation =(GroupConversation) resp.getPayload();
-        convo.addConversationToList(newConversation);
+        DataModel.getInstance().addConversationToList(newConversation);
         return newConversation;
     }
     
@@ -282,7 +300,6 @@ public class ClientController implements ClientCalls {
     
     @Override
     public Conversation startNewConversation(User other) {
-    	Conversation newConversation = new Conversation(loggedUser.getUserID(), other.getUserID());
     	Wrapper resp = sendAndWait(other, RequestType.CREATE_CONVERSATION);
         if(resp.getResponseType() != ResponseType.CREATE_CONVERSATION_SUCCESS){
         	if(resp.getResponseType() == ResponseType.CREATE_CONVERSATION_FAIL) {
@@ -295,7 +312,9 @@ public class ClientController implements ClientCalls {
         		return null;
         	}
         }
-        convo.addConversationToList(newConversation);
+        Conversation newConversation = (Conversation)resp.getPayload();
+        DataModel.getInstance().addConversationToList(newConversation);
+        DataModel.getInstance().getCurrentUser().addConversation(newConversation.getID());
         return newConversation;
     }
 
@@ -303,21 +322,17 @@ public class ClientController implements ClientCalls {
 
     
     @Override
-    public Conversation requestConversationLogById(String id) {
-    	Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
+    public Conversation requestConversationById(String id) {
+	    	System.out.println("Sending request");
+	    	Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
+	    	if(resp == null) {
+	    		return null;
+	    	}
+	    	System.out.println("Response: " + resp.getResponseType().name());
         if(resp.getResponseType() != ResponseType.CONVERSATION_SENT){
-        	if(resp.getResponseType() == ResponseType.CONVERSATION_NOT_SENT) {
         		return null;
-        	}
-        	while(resp != null && resp.getResponseType() != ResponseType.CONVERSATION_SENT) {
-        		resp = waitForResponse();
-        	}
-        	if(resp == null) {
-        		return null;
-        	}
         }
         Conversation requestedConversation = (Conversation) resp.getPayload();
-        convo.setCurrentLog(requestedConversation);
         return requestedConversation;
     }
     
@@ -327,7 +342,7 @@ public class ClientController implements ClientCalls {
     
     @Override
     public void updateCurrentConversation(String id) {
-        Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
+        Wrapper resp = sendAndWait(id, RequestType.UPDATE_ACTIVE_CONVERSATION);
         if(resp.getResponseType() != ResponseType.ACTIVE_CONVERSATION_UPDATED){
         	while(resp != null && resp.getResponseType() != ResponseType.ACTIVE_CONVERSATION_UPDATED) {
         		resp = waitForResponse();
@@ -336,7 +351,7 @@ public class ClientController implements ClientCalls {
         		return;
         	}
         }
-        convo.setCurrentConversation(convo.findConversationIndex(id));
+        DataModel.getInstance().setCurrentConversation(DataModel.getInstance().findConversationIndex(id));
     }
 
 
@@ -345,16 +360,12 @@ public class ClientController implements ClientCalls {
     
     public void getConversations(ArrayList<Conversation> Ar){
     	for(int x = 0; x < Ar.size(); x++) {
-    		convo.addConversationToList(Ar.get(x));
+    		DataModel.getInstance().addConversationToList(Ar.get(x));
     	}
     }
     
     
-    
-    
-    public void getActiveUsers(ArrayList<User> Ar) {
-    	convo.addActiveUsers(Ar);
-    }
+
     
     
     
@@ -382,24 +393,7 @@ public class ClientController implements ClientCalls {
         target.setPosition(newPosition);
         return true;
     }
-    
-    
-    
-    
-    public void updateActiveUsers(Wrapper w) {
-    	if(w.getResponseType() == ResponseType.USER_LOGGED_IN) {
-    		User ActiveUser = (User)w.getPayload();
-    		convo.addActiveUser(ActiveUser);
-    	}
-    	else if(w.getResponseType() == ResponseType.USER_LOGGED_OUT) {
-    		User InactiveUser = (User)w.getPayload();
-    		convo.removeActiveUser(InactiveUser);
-    	}
-    }
-    
-    
-    
-    
+
     public void groupConversationParticipantChanged(Wrapper c) {
         GroupConversation participantChanged = (GroupConversation) c.getPayload();
         String ID = participantChanged.getID();
@@ -407,14 +401,9 @@ public class ClientController implements ClientCalls {
         convo.getConversationAtIndex(idx).clearParticipants();
         convo.getConversationAtIndex(idx).addParticipants(participantChanged.getParticipants());	
     }
-    
-    
-    
-    
-    
     @Override
     public void setGroupChatName(String name) {
-        Conversation current = convo.getCurrentConversation();
+        Conversation current = DataModel.getInstance().getCurrentConversation();
         if (!(current instanceof GroupConversation)) return;
 
         Wrapper resp = sendAndWait(name, RequestType.CHANGE_GROUP_NAME);
@@ -470,11 +459,9 @@ public class ClientController implements ClientCalls {
   
     @Override
     public ArrayList<User> searchUsers(String matching) {
-        Wrapper resp = sendAndWait(matching, RequestType.GET_USER_INFO);
-        if(resp == null) {
-        	return new ArrayList<>();
-        }
-        if(resp.getResponseType() == ResponseType.USER_INFO_SENT) {
+        Wrapper resp = sendAndWait(matching, RequestType.SEARCH_SIMILAR_USERS);
+        if (resp == null) return new ArrayList<>();
+        if (resp.getResponseType() == ResponseType.USER_INFO_SENT) {
             @SuppressWarnings("unchecked")
             ArrayList<User> result = (ArrayList<User>) resp.getPayload();
             return result;
@@ -522,6 +509,16 @@ public class ClientController implements ClientCalls {
             return waitForResponse();
         }
     }
+    
+    private Wrapper sendAndWait(Object payload, ResponseType type) {
+    	synchronized (requestLock) {
+            synchronized (responseLock) {
+                response = null;
+            }
+            runner.send(payload, type);
+            return waitForResponse();
+        }
+  	}
         
     private Wrapper waitForResponse() {
         synchronized (responseLock) {

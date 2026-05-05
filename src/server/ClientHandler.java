@@ -69,7 +69,8 @@ public class ClientHandler implements Runnable {
 	        //make the necessary handle objects
 	        authenticateHandle = new AuthenticateHandler(out, in);
 			messageHandle = new MessageHandler(out);
-	        conversationHandle = new ConversationHandler(out, in);
+	        conversationHandle = new ConversationHandler(out, in, this);
+	        
 			while(!isLoggedIn) {
 				
 				Wrapper expectedLoginRequest = (Wrapper) in.readObject();
@@ -81,8 +82,6 @@ public class ClientHandler implements Runnable {
 					//check if the user is an IT user
 					isIT = userAccount.isIT();
 					Server.registerActiveUser(userAccount.getUserID(), this);
-					Broadcast broadcast = new Broadcast();
-					broadcast.broadcastLogin(userAccount);
 				}
 				
 			}
@@ -138,7 +137,7 @@ public class ClientHandler implements Runnable {
 			        //Alejandro
 			        case GET_CONVERSATION:
 			            System.out.println("Getting conversation");
-			            conversationHandle.handleGetConversation(receivedObject, activeConversationID, isIT);
+			            conversationHandle.handleGetConversation(receivedObject, activeConversationID);
 			            break;
 		
 			        //Alejandro

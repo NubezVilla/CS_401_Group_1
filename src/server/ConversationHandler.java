@@ -18,11 +18,13 @@ public class ConversationHandler {
 	private ObjectOutputStream out;
 	private ObjectInputStream in;
 	private ResponseHandler responseHandle;
+	private ClientHandler clientHandle;
 	
-	public ConversationHandler (ObjectOutputStream out, ObjectInputStream in) {
+	public ConversationHandler (ObjectOutputStream out, ObjectInputStream in, ClientHandler client) {
 		this.out = out;
 		this.in = in;
 		this.responseHandle = new ResponseHandler(out, in);
+		this.clientHandle = client;
 	}
 	
 	void handleCreateConversation(Wrapper obj, String currentUserID) {
@@ -109,19 +111,11 @@ public class ConversationHandler {
 		
 		
 	
-	void handleGetConversation(Wrapper obj, String activeConversationID, boolean isIT) {
-		/* 
-		 * This method gets a conversation from the conversations map in the server.
-		 * It checks to make sure that the user is an IT user first.
-		 * If they are not then return.
-		 * If they are then find the conversation they are looking for and 
+	void handleGetConversation(Wrapper obj, String activeConversationID) {
+		/* find the conversation they are looking for and 
 		 * send it to the client
 		 *  */
-		//if not IT, return
-		if(!isIT) {
-			sendResponse(new Message("UNAUTHORIZED USER", "Server"), ResponseType.CONVERSATION_NOT_SENT);
-			return;
-		}
+		
 		// check that it is the correct payload
 		if (!(obj.getPayload() instanceof String)) {
 			sendResponse(new Message("INVALID PAYLOAD: STRING", "Server"), ResponseType.CONVERSATION_NOT_SENT);
@@ -134,21 +128,20 @@ public class ConversationHandler {
 		//make sure the conversation exists
 		if(requestedConversation == null)
 		{
+			
 			sendResponse(new Message("CONVERSATION DOES NOT EXIST", "Server"), ResponseType.CONVERSATION_NOT_SENT);
 			return;
 		}
-		//send the Conversation to the IT user
 		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.CONVERSATION_SENT);
 		//send the payload
-		sendPayload(sendConversation);
-		/*
-		boolean conversationSent = responseHandle.sendWithRetry(sendConversation, ResponseType.DATA_RECEIVED);
-	    if(!conversationSent) {
-	    	sendResponse(new Message("CONVERSATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
-	    	return;
-	    } */
-		//send confirmation that everything was sent
-		//sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
+		System.out.println("I was right");
+		try {
+			clientHandle.sendToClient(sendConversation);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	void handleAddParticipant(Wrapper obj, String activeConversationID, String currentUserID) {
@@ -177,7 +170,7 @@ public class ConversationHandler {
         }
 		
 		User incomingUser = (User) obj.getPayload();
-		User userToAdd = Server.getUserbyID(incomingUser);
+		User userToAdd = Server.getUserbyID(incomingUser.getUserID());
 
 		if (userToAdd == null) {
             sendResponse(new Message("USER NOT FOUND", "Server"), ResponseType.ADD_PARTICIPANT_FAIL);
@@ -248,7 +241,7 @@ public class ConversationHandler {
         }
 		
 		//get the user from the Existing data to update
-		User removingUser = Server.getUserbyID(userToRemove);
+		User removingUser = Server.getUserbyID(userToRemove.getUserID());
 		
 		if (removingUser == null) {
             sendResponse(new Message("USER NOT FOUND", "Server"), ResponseType.REMOVE_PARTICIPANT_FAIL);
@@ -385,11 +378,10 @@ public class ConversationHandler {
 	}
 	
 	// Private helper to reduce repetitive try/catch blocks
-	private void sendResponse(Message msg, ResponseType responseType) {
+	private void sendResponse(Object o, ResponseType responseType) {
 	    try {
-	        Wrapper response = new Wrapper(msg, responseType);
-	        out.writeObject(response);
-	        out.flush();
+	        Wrapper response = new Wrapper(o, responseType);
+	        clientHandle.sendToClient(response);
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	    }

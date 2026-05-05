@@ -123,5 +123,14 @@ public class Client {
 	            Thread.currentThread().interrupt();
 	        }
 	    }
+
+		public void send(Object thisObject, ResponseType ID) {
+			Wrapper newData = new Wrapper(thisObject, ID);
+	        try {
+	            queue.put(newData);
+	        } catch (InterruptedException e) {
+	            Thread.currentThread().interrupt();
+	        }
+		}
 	}
 }

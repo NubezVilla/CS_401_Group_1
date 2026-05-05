@@ -23,18 +23,6 @@ import model.Wrapper;
 
 public class Broadcast {
 
-    public void broadcastLogin(User user) {
-        Message msg = new Message("USER LOGGED IN: " + user.getUserID(), "Server");
-        Wrapper wrapper = new Wrapper(msg, ResponseType.USER_LOGGED_IN);
-        sendToAllExcept(wrapper, user.getUserID());
-    }
-
-    public void broadcastLogout(User user) {
-        Message msg = new Message("USER LOGGED OUT: " + user.getUserID(), "Server");
-        Wrapper wrapper = new Wrapper(msg, ResponseType.USER_LOGGED_OUT);
-        sendToAllExcept(wrapper, user.getUserID());
-    }
-
     public void broadcastParticipantAdded(String conversationID, User user, String currentUserID) {
         Message msg = new Message(
             "PARTICIPANT ADDED: " + user.getUserID() + " TO " + conversationID,
