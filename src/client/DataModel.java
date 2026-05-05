@@ -154,7 +154,7 @@ public class DataModel {
 //
 //	
 	public int findConversationIndex(String id) {
-		return conversationList.findConversation(id);
+		return conversationList.findConversationIndex(id);
 	}
 	
 	

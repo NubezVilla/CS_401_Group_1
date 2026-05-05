@@ -74,7 +74,15 @@ public class ConversationListModel extends AbstractListModel<Conversation> {
 	}
 	
 //	Added
-	public int findConversation(String id) {
+	public Conversation findConversation(String id) {
+		for(int x = 0; x < listModel.size(); x++) {
+			if(listModel.get(x).getID().equals(id)) {
+				return listModel.get(x);
+			}
+		}
+		return null;
+	}
+	public int findConversationIndex(String id) {
 		for(int x = 0; x < listModel.size(); x++) {
 			if(listModel.get(x).getID().equals(id)) {
 				return x;

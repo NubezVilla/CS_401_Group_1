@@ -135,8 +135,7 @@ public class AuthenticateHandler {
 			//Remove from active users
 			if (userAccount != null) {
 				Server.removeActiveUser(userAccount.getUserID());
-				Broadcast broadcast = new Broadcast();
-				broadcast.broadcastLogout(userAccount);
+
 			}
 			isLoggedIn = false;
 			sendResponse(new Message("LOGOUT SUCCESSFUL", "Server"), ResponseType.LOGOUT_SUCCESS);

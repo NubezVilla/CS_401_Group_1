@@ -47,19 +47,10 @@ public class ClientController implements ClientCalls {
             	changeGroupName((Conversation) data.getPayload());
             case SENDING_CONVERSATIONS:
             	deliverResponse(data);
-//            	Object conversations = data.getPayload();
-//            	if(conversations instanceof ArrayList<?> list) {
-//            		ArrayList<Conversation> result = new ArrayList<>();
-//            		for(Object o: list) {
-//            			if(o instanceof Conversation c) {
-//            				result.add(c);
-//            			}
-//            		}
-//            		getConversations(result);
-//            	}
             	break;
             case PARTICIPANT_ADDED, PARTICIPANT_REMOVED:
             	groupConversationParticipantChanged(data);
+            break;
             default:
                 System.out.println("Unhandled response type: " + data.getResponseType());
                 break;
@@ -109,9 +100,7 @@ public class ClientController implements ClientCalls {
     		getConversations(result);
     		}
     }
-    
-    
-    
+
     @Override
     public void logoutAttempt() {
         if(loggedUser == null) return;
@@ -217,15 +206,25 @@ public class ClientController implements ClientCalls {
         	}
         }
         Message newMessage = (Message)resp.getPayload();
-        DataModel.getInstance().getCurrentConversation().addMessage(newMessage);
+        DataModel.getInstance().addMessageToCurrent(newMessage);
     }
     
     
     
     
     public void getMessage(Envelope E) {
-    	DataModel.getInstance().addMessageToConversation(DataModel.getInstance().getConversationAtIndex(DataModel.getInstance().findConversationIndex(E.getID())), E.getMessage());
-    	loggedUser.addUnreadConversation(E.getID());
+    		System.out.println("Got a message");
+	    if (	DataModel.getInstance().getConversationList().findConversation(E.getID()) == null) {
+	    		System.out.println("Trying to find conversation");
+	    		Conversation temp = requestConversationById(E.getID());
+	    		DataModel.getInstance().addConversationToList(temp);
+	    		System.out.println("Convo found");
+	    }
+	    System.out.println("Adding message");
+	    	DataModel.getInstance().addMessageToConversation(DataModel.getInstance().getConversationList().findConversation(E.getID()), E.getMessage());
+	    if (!DataModel.getInstance().getCurrentConversation().getID().equals(E.getID())) {
+	    		loggedUser.addUnreadConversation(E.getID());
+	    }
     }
     
     
@@ -323,21 +322,17 @@ public class ClientController implements ClientCalls {
 
     
     @Override
-    public Conversation requestConversationLogById(String id) {
-    	Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
+    public Conversation requestConversationById(String id) {
+	    	System.out.println("Sending request");
+	    	Wrapper resp = sendAndWait(id, RequestType.GET_CONVERSATION);
+	    	if(resp == null) {
+	    		return null;
+	    	}
+	    	System.out.println("Response: " + resp.getResponseType().name());
         if(resp.getResponseType() != ResponseType.CONVERSATION_SENT){
-        	if(resp.getResponseType() == ResponseType.CONVERSATION_NOT_SENT) {
         		return null;
-        	}
-        	while(resp != null && resp.getResponseType() != ResponseType.CONVERSATION_SENT) {
-        		resp = waitForResponse();
-        	}
-        	if(resp == null) {
-        		return null;
-        	}
         }
         Conversation requestedConversation = (Conversation) resp.getPayload();
-        DataModel.getInstance().setCurrentLog(requestedConversation);
         return requestedConversation;
     }
     

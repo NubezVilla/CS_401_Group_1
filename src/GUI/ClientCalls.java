@@ -145,7 +145,7 @@ public interface ClientCalls {
 	 * @param id of the conversation to find
 	 * @return the conversation log with the passed ID
 	 */
-	public Conversation requestConversationLogById(String id);
+	public Conversation requestConversationById(String id);
 		
 	/**updates the current log to the passed conversation log. 
 	 * Should put the conversation in the logs data structure first. 

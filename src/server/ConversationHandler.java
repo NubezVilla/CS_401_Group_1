@@ -56,19 +56,11 @@ public class ConversationHandler {
 		
 	}
 	
-	void handleGetConversation(Wrapper obj, String activeConversationID, boolean isIT) {
-		/* 
-		 * This method gets a conversation from the conversations map in the server.
-		 * It checks to make sure that the user is an IT user first.
-		 * If they are not then return.
-		 * If they are then find the conversation they are looking for and 
+	void handleGetConversation(Wrapper obj, String activeConversationID) {
+		/* find the conversation they are looking for and 
 		 * send it to the client
 		 *  */
-		//if not IT, return
-		if(!isIT) {
-			sendResponse(new Message("UNAUTHORIZED USER", "Server"), ResponseType.CONVERSATION_NOT_SENT);
-			return;
-		}
+		
 		// check that it is the correct payload
 		if (!(obj.getPayload() instanceof String)) {
 			sendResponse(new Message("INVALID PAYLOAD: STRING", "Server"), ResponseType.CONVERSATION_NOT_SENT);
@@ -81,21 +73,20 @@ public class ConversationHandler {
 		//make sure the conversation exists
 		if(requestedConversation == null)
 		{
+			
 			sendResponse(new Message("CONVERSATION DOES NOT EXIST", "Server"), ResponseType.CONVERSATION_NOT_SENT);
 			return;
 		}
-		//send the Conversation to the IT user
 		Wrapper sendConversation = new Wrapper(requestedConversation, ResponseType.CONVERSATION_SENT);
 		//send the payload
-		sendPayload(sendConversation);
-		/*
-		boolean conversationSent = responseHandle.sendWithRetry(sendConversation, ResponseType.DATA_RECEIVED);
-	    if(!conversationSent) {
-	    	sendResponse(new Message("CONVERSATION NOT SENT", "Server"), ResponseType.CONVERSATION_NOT_SENT);
-	    	return;
-	    } */
-		//send confirmation that everything was sent
-		//sendResponse(new Message("CONVERSATION SENT", "Server"), ResponseType.CONVERSATION_SENT);
+		System.out.println("I was right");
+		try {
+			clientHandle.sendToClient(sendConversation);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	void handleAddParticipant(Wrapper obj, String activeConversationID, String currentUserID) {
@@ -238,8 +229,7 @@ public class ConversationHandler {
     // Private helper to reduce repetitive try/catch blocks
     private void sendPayload(Wrapper payload) {
         try {
-            out.writeObject(payload);
-            out.flush();
+        		clientHandle.sendToClient(payload);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -249,8 +239,7 @@ public class ConversationHandler {
 	private void sendResponse(Object o, ResponseType responseType) {
 	    try {
 	        Wrapper response = new Wrapper(o, responseType);
-	        out.writeObject(response);
-	        out.flush();
+	        clientHandle.sendToClient(response);
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	    }
