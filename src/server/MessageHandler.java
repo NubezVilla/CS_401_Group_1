@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import model.Conversation;
+import model.ConversationHeader;
 import model.Envelope;
+import model.GroupConversation;
 import model.Message;
 import model.RequestType;
 import model.ResponseType;
@@ -135,6 +137,7 @@ public class MessageHandler {
 		 */
 		//first use conversationID to find the correct conversation
 		//a map in the Server currently holds all the conversations
+		
 		Conversation currentConversation = Server.getConversation(activeConversationID);
 		
 	    if (currentConversation == null) {
@@ -171,7 +174,14 @@ public class MessageHandler {
           
 			//get their socket to write to
             try {
-            		Envelope messageAndConvoID = new Envelope(messageToSend, currentConversation.toHeader());
+            		ConversationHeader head;
+            		if(currentConversation instanceof GroupConversation) {
+            			head = new ConversationHeader((GroupConversation)currentConversation);
+            		}
+            		else {
+            			head = new ConversationHeader(currentConversation);
+            		}
+            		Envelope messageAndConvoID = new Envelope(messageToSend, head);
 				handler.sendToClient(new Wrapper(messageAndConvoID, ResponseType.SENDING_MESSAGE));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
