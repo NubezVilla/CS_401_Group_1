@@ -1,0 +1,19 @@
+JUnit Test Run doc:
+The JUnit testing in our program is purely java implemented and does not require any other libraries or dependencies. 
+The JUnit test files test AutheticateHandler.java, ConversationHandler.java, FileManager.java, Log.java, MessageHandler.java, Server.java and UserData.java. These are all Server side files.
+
+JUnit Files:
+AllServerTests.java
+AuthenticateHandlerTest.java
+ConversationHandlerTest.java
+FileManagerTest.java
+LogTest.java
+MessageHandlerTest.java
+ServerTest.java
+UserDataTest.java
+
+To Run:
+To run our tests open the project in Eclipse and right click on the AllServerTest.java and run as a JUnit test. 
+
+Note:
+For Server tests, multithreading and client connecting was not tested. 
