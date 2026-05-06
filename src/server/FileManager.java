@@ -73,7 +73,7 @@ public class FileManager {
         for (File file : files) {
             if (!file.getName().endsWith(".csv")) continue;
 
-            Conversation conversation = readConversation(file);
+            Conversation conversation = readConversation(file, userData);
             if (conversation != null) {
                 userData.addConversation(conversation);
             }
@@ -85,7 +85,7 @@ public class FileManager {
      * metadata (type, creator, group name)
      * Returns either a Conversation or GroupConversation object. 
     */
-    private Conversation readConversation(File file) throws IOException {
+    private Conversation readConversation(File file, UserData userData) throws IOException {
     	BufferedReader reader = new BufferedReader(new FileReader(file));
 
         String line;
@@ -154,7 +154,11 @@ public class FileManager {
             	base.setName(groupName);
             	for (String p : participants) {
                     base.addParticipant(p);
-                    UserData.getInstance().getUserById(p).addConversation(base.getID());
+                    User user = userData.getUserById(p);
+
+                    if (user != null) {
+                        user.addConversation(base.getID());
+                    }
             }
             for (Message m : messages) {
             		base.addMessage(m);
@@ -166,7 +170,11 @@ public class FileManager {
 
         for (String p : participants) {
             base.addParticipant(p);
-            UserData.getInstance().getUserById(p).addConversation(base.getID());
+            User user = userData.getUserById(p);
+
+            if (user != null) {
+                user.addConversation(base.getID());
+            }
         }
 
         for (Message m : messages) {

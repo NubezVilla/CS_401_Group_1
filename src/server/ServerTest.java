@@ -46,5 +46,20 @@ public class ServerTest {
         assertEquals(0, Server.getActiveUserList().size(), "Active user list should be empty after removal.");
         assertNull(Server.getActiveClient(testUserID), "Retrieving a removed user should return null.");
     }
+    
+    @Test
+    public void testGetActiveUserIDs_ReturnsRegisteredIDs() {
+        ClientHandler handler1 = new ClientHandler(new Socket());
+        ClientHandler handler2 = new ClientHandler(new Socket());
+
+        Server.registerActiveUser("user1", handler1);
+        Server.registerActiveUser("user2", handler2);
+
+        assertAll(
+            () -> assertEquals(2, Server.getActiveUserIDs().size()),
+            () -> assertTrue(Server.getActiveUserIDs().contains("user1")),
+            () -> assertTrue(Server.getActiveUserIDs().contains("user2"))
+        );
+    }
 
 }

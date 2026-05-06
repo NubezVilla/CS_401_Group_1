@@ -72,7 +72,7 @@ public class FileManagerTest {
 
     @Test
     public void testLoadData_LoadsUsersIntoUserData() throws IOException {
-        UserData userData = new UserData();
+        UserData userData = UserData.getInstance();
 
         fileManager.loadData(userData);
 
