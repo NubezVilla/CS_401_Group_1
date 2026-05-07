@@ -1,0 +1,64 @@
+17,2026-05-05T20:27:36.057030900Z,Buisness buisness business
+17,2026-05-05T20:28:32.903729900Z,Work work work
+17,2026-05-05T20:28:33.319209500Z,Work work work
+17,2026-05-05T20:28:35.853641800Z,Work work work
+17,2026-05-05T20:28:48.932841600Z,Work work work
+17,2026-05-05T20:28:49.707390300Z,Work work work
+17,2026-05-05T20:28:57.750404400Z,Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+17,2026-05-05T20:29:11.543499Z,Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+17,2026-05-05T20:29:17.831585800Z,Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+Work work work
+17,2026-05-05T20:35:35.653773200Z,Harper
+17,2026-05-05T20:40:21.028305700Z,Lets go
+17,2026-05-05T20:50:26.088038100Z,Hellooo
+17,2026-05-05T20:51:07.411155200Z,Who needs discord anymore
+17,2026-05-05T20:51:19.577650600Z,We can do all of our chatting here
+17,2026-05-05T20:52:11.222368100Z,I guess so
+17,2026-05-05T20:52:13.279400300Z,It shouldn't
+17,2026-05-05T20:52:33.489182Z,This is a second conversation between just the two of us, right?
+17,2026-05-05T20:52:47.863151300Z,Wait is this supposed to be a GC?
+17,2026-05-05T20:52:56.154547100Z,Oh, hm
+17,2026-05-05T20:53:12.129257400Z,Add someone else?
+17,2026-05-05T20:53:25.608367800Z,hm
+17,2026-05-05T20:53:32.425911100Z,Oh, yeah, of course
+17,2026-05-05T20:53:42.424925400Z,I *literally* just pushed the school preset
+17,2026-05-05T20:54:17.669492200Z,For which part?
+17,2026-05-05T20:54:28.035099300Z,Like for login?
+17,2026-05-05T20:54:43.568920700Z,I just rebracketed your code there
+17,2026-05-05T20:54:58.669125500Z,And set up a proper three way handshake with the server
+17,2026-05-05T20:55:36.147390100Z,So we send login, server sends user, we send confirmation that we got the user, then server sends conversations which we're expecting
+17,2026-05-05T20:56:02.888597100Z,I mean you can check the commits to see what all I did
+17,2026-05-05T20:56:12.233831Z,Hoenstly it was mostly just be being a bit of a control freak
+17,2026-05-05T20:57:09.481912200Z,I probably could have delegated a few things off to you, I just didn't want to deal with managing multiple commits and working over eachother
+17,2026-05-05T21:00:51.657580300Z,I made my choices xd
+17,2026-05-05T21:01:58.212969100Z,Sorry if it was stressing you out to be in the dark about everything, but I'll happily take a long night for a guarantee that everything works
+17,2026-05-05T21:02:41.951301400Z,Yup
+17,2026-05-05T21:03:00.023325800Z,o7
+17,2026-05-05T21:03:58.581412500Z,now to diagnose why this isn't displaying properly
+17,2026-05-05T21:04:45.452238400Z,It has the DM interface on my screen
+17,2026-05-05T21:05:12.850920Z,It never was
+17,2026-05-05T21:05:17.372769200Z,first it was you, now it's Jason
+17,2026-05-05T21:05:25.459736Z,(Funderberker)
+17,2026-05-05T21:07:00.853556700Z,Okay, on reload it's rendering properly
+17,2026-05-05T21:07:13.995514600Z,so it's stored correctly, but the send is wierd
+17,2026-05-05T21:13:29.572313500Z,Whenever a message gets sent the GUI refrehses
+17,2026-05-05T21:13:42.998712200Z,But I *don't* have it notifying the gui when a user gets added to a conversation
+17,2026-05-05T21:13:51.563803800Z,At least one message needs to be sent first
+17,2026-05-05T21:14:02.019076600Z,Also I found the bug

@@ -71,12 +71,12 @@ class GroupConversationTest {
     }
 
     @Test
-    void groupStartsWithNoName() {
+    void groupStartsWithName() {
         Conversation base = new Conversation("user1", "user2");
 
         GroupConversation group = new GroupConversation(base, "creator1");
 
-        assertNull(group.getName());
+        assertNotNull(group.getName());
     }
 
     @Test
@@ -130,6 +130,6 @@ class GroupConversationTest {
 
         assertNotNull(group.getMessages());
         assertTrue(group.getMessages().isEmpty());
-        assertNull(group.getMostRecentMessageTimestamp());
+        assertNotNull(group.getMostRecentMessageTimestamp());
     }
 }

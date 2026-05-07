@@ -22,7 +22,7 @@ class ConversationTest {
         assertNotNull(conversation.getMessages());
         assertTrue(conversation.getParticipants().isEmpty());
         assertTrue(conversation.getMessages().isEmpty());
-        assertNull(conversation.getMostRecentMessageTimestamp());
+        assertNotNull(conversation.getMostRecentMessageTimestamp());
     }
 
     @Test
@@ -35,7 +35,7 @@ class ConversationTest {
         assertTrue(conversation.getParticipants().contains("user1"));
         assertTrue(conversation.getParticipants().contains("user2"));
         assertTrue(conversation.getMessages().isEmpty());
-        assertNull(conversation.getMostRecentMessageTimestamp());
+        assertNotNull(conversation.getMostRecentMessageTimestamp());
     }
 
     @Test
@@ -56,7 +56,7 @@ class ConversationTest {
         assertNotNull(conversation.getID());
         assertTrue(conversation.getParticipants().isEmpty());
         assertTrue(conversation.getMessages().isEmpty());
-        assertNull(conversation.getMostRecentMessageTimestamp());
+        assertNotNull(conversation.getMostRecentMessageTimestamp());
     }
 
     @Test
@@ -164,13 +164,13 @@ class ConversationTest {
     }
 
     @Test
-    void getParticipantsReturnsUnderlyingMutableSet() {
+    void getParticipantsReturnsImmutableSet() {
         Conversation conversation = new Conversation();
 
         HashSet<String> participants = conversation.getParticipants();
         participants.add("user1");
 
-        assertTrue(conversation.hasParticipant("user1"));
+        assertFalse(conversation.hasParticipant("user1"));
     }
 
     @Test

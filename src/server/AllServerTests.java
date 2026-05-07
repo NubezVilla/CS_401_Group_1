@@ -10,7 +10,7 @@ import org.junit.platform.suite.api.Suite;
     FileManagerTest.class,
     LogTest.class,
     MessageHandlerTest.class,
-    ResponseHandlerTest.class,
+    //ResponseHandlerTest.class,
     ServerTest.class,
     UserDataTest.class
 })

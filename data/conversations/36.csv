@@ -1,0 +1,75 @@
+type,GC
+creatorID,3
+groupName,THIS WORKS RIGHT?
+conversationId,36
+createdAt,2026-05-05T20:51:02.937439Z
+participants,3;5;17
+messages
+3,2026-05-05T20:51:45.540743Z,this works?
+17,2026-05-05T20:52:11.222368100Z,I guess so
+17,2026-05-05T20:52:13.279400300Z,It shouldn't
+3,2026-05-05T20:52:20.864322800Z,what do you mean it shouldn't?
+17,2026-05-05T20:52:33.489182Z,This is a second conversation between just the two of us, right?
+3,2026-05-05T20:52:40.421496400Z,technically
+17,2026-05-05T20:52:47.863151300Z,Wait is this supposed to be a GC?
+3,2026-05-05T20:52:51.949589300Z,Yeah
+17,2026-05-05T20:52:56.154547100Z,Oh, hm
+3,2026-05-05T20:53:08.366233Z,It has a different ID I guess
+17,2026-05-05T20:53:12.129257400Z,Add someone else?
+3,2026-05-05T20:53:16.934572Z,also, the school preset doesn't work
+3,2026-05-05T20:53:22.253198300Z,I had to put the IP manually
+17,2026-05-05T20:53:25.608367800Z,hm
+1,2026-05-05T20:53:32.394093Z,Jason Funderberker has been added.
+17,2026-05-05T20:53:32.425911100Z,Oh, yeah, of course
+17,2026-05-05T20:53:42.424925400Z,I *literally* just pushed the school preset
+3,2026-05-05T20:53:47.086512400Z,oh ok
+3,2026-05-05T20:54:03.928851300Z,I was checking the code this morning and saw you made a change to sending conversations
+3,2026-05-05T20:54:09.104351200Z,I thought it wouldn't work ngl
+3,2026-05-05T20:54:12.349469Z,what did you do?
+17,2026-05-05T20:54:17.669492200Z,For which part?
+17,2026-05-05T20:54:28.035099300Z,Like for login?
+3,2026-05-05T20:54:28.607621200Z,for the client controller switch case
+3,2026-05-05T20:54:33.942798700Z,yes
+17,2026-05-05T20:54:43.568920700Z,I just rebracketed your code there
+17,2026-05-05T20:54:58.669125500Z,And set up a proper three way handshake with the server
+3,2026-05-05T20:55:07.625944100Z,oh
+3,2026-05-05T20:55:13.513777Z,how much did you work on last night>
+3,2026-05-05T20:55:14.916273300Z,?
+3,2026-05-05T20:55:22.801614600Z,I feel like I should've been able to help you
+17,2026-05-05T20:55:36.147390100Z,So we send login, server sends user, we send confirmation that we got the user, then server sends conversations which we're expecting
+3,2026-05-05T20:55:47.052845700Z,I meant in general
+17,2026-05-05T20:56:02.888597100Z,I mean you can check the commits to see what all I did
+17,2026-05-05T20:56:12.233831Z,Hoenstly it was mostly just be being a bit of a control freak
+17,2026-05-05T20:57:09.481912200Z,I probably could have delegated a few things off to you, I just didn't want to deal with managing multiple commits and working over eachother
+3,2026-05-05T21:00:42.632219400Z,yeah because I saw you sending a message at 5 AM and i felt bad that I couldn't help
+17,2026-05-05T21:00:51.657580300Z,I made my choices xd
+17,2026-05-05T21:01:58.212969100Z,Sorry if it was stressing you out to be in the dark about everything, but I'll happily take a long night for a guarantee that everything works
+3,2026-05-05T21:02:36.905329500Z,yeah, now we just need to have JUnit tests
+17,2026-05-05T21:02:41.951301400Z,Yup
+3,2026-05-05T21:02:48.121903800Z,It shouldn't take long so you should take a brea
+3,2026-05-05T21:02:52.847804400Z,thanks for your work
+3,2026-05-05T21:02:56.769513100Z,o7
+17,2026-05-05T21:03:00.023325800Z,o7
+17,2026-05-05T21:03:58.581412500Z,now to diagnose why this isn't displaying properly
+3,2026-05-05T21:04:12.370618Z,what do you mean?
+17,2026-05-05T21:04:45.452238400Z,It has the DM interface on my screen
+3,2026-05-05T21:04:52.600778200Z,oh
+3,2026-05-05T21:05:05.104049300Z,is the group name still just the two of us?
+17,2026-05-05T21:05:12.850920Z,It never was
+3,2026-05-05T21:05:16.050397600Z,I changed it to "THIS WORKS RIGHT?"
+17,2026-05-05T21:05:17.372769200Z,first it was you, now it's Jason
+17,2026-05-05T21:05:25.459736Z,(Funderberker)
+3,2026-05-05T21:05:25.827394100Z,what?
+3,2026-05-05T21:05:36.121557600Z,I logged into avalina though
+17,2026-05-05T21:05:38.992192700Z,Yes, yes
+3,2026-05-05T21:05:39.705936Z,that's weird
+17,2026-05-05T21:05:49.100431900Z,And then the second person you added was account Jason Funderberker
+17,2026-05-05T21:06:20.062975100Z,But my GUI is treating this as a DM, so it's not looking at what the Group Name is supposed to be
+17,2026-05-05T21:07:00.853556700Z,Okay, on reload it's rendering properly
+17,2026-05-05T21:07:13.995514600Z,so it's stored correctly, but the send is wierd
+3,2026-05-05T21:08:14.538642400Z,huh
+3,2026-05-05T21:08:29.630933400Z,do you refresh the gui on a new message or conversation?
+17,2026-05-05T21:13:29.572313500Z,Whenever a message gets sent the GUI refrehses
+17,2026-05-05T21:13:42.998712200Z,But I *don't* have it notifying the gui when a user gets added to a conversation
+17,2026-05-05T21:13:51.563803800Z,At least one message needs to be sent first
+17,2026-05-05T21:14:02.019076600Z,Also I found the bug
